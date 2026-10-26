@@ -10,58 +10,67 @@
     <div id="viewport"></div>
 
     <form id="panel" autocomplete="off">
-      <label class="expr">
-        <span>f(x, y) =</span>
+      <div class="expr">
+        <div class="expr-head">
+          <label for="expr">f(x, y) =</label>
+          <button id="panelToggle" class="panel-toggle" type="button" aria-expanded="true" aria-controls="panelBody">
+            Controls
+            <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" /></svg>
+          </button>
+        </div>
         <input id="expr" name="expr" spellcheck="false" />
-      </label>
-
-      <label class="row">
-        <span>Preset</span>
-        <select id="preset">
-          <option value="">Choose…</option>
-        </select>
-      </label>
-
-      <fieldset class="range">
-        <legend>x</legend>
-        <input id="xMin" type="number" step="any" aria-label="x min" />
-        <span>to</span>
-        <input id="xMax" type="number" step="any" aria-label="x max" />
-      </fieldset>
-      <fieldset class="range">
-        <legend>y</legend>
-        <input id="yMin" type="number" step="any" aria-label="y min" />
-        <span>to</span>
-        <input id="yMax" type="number" step="any" aria-label="y max" />
-      </fieldset>
-
-      <label class="row">
-        <span>Resolution <output id="resOut"></output></span>
-        <input id="resolution" type="range" min="10" max="400" step="10" />
-      </label>
-
-      <div class="checks">
-        <label><input id="fitZ" type="checkbox" /> Fit z to view</label>
-        <label><input id="meshLines" type="checkbox" /> Mesh lines</label>
       </div>
 
-      <fieldset class="slice" data-axis="x">
-        <label><input id="sliceX" type="checkbox" /> Slice at x = x₀</label>
-        <div id="sliceXControls" class="slice-controls">
-          <input id="x0Slider" type="range" aria-label="x₀ slider" />
-          <input id="x0" type="number" step="any" aria-label="x₀" />
-        </div>
-      </fieldset>
+      <div id="panelBody" class="panel-body">
+        <label class="row">
+          <span>Preset</span>
+          <select id="preset">
+            <option value="">Choose…</option>
+          </select>
+        </label>
 
-      <fieldset class="slice" data-axis="y">
-        <label><input id="sliceY" type="checkbox" /> Slice at y = y₀</label>
-        <div id="sliceYControls" class="slice-controls">
-          <input id="y0Slider" type="range" aria-label="y₀ slider" />
-          <input id="y0" type="number" step="any" aria-label="y₀" />
-        </div>
-      </fieldset>
+        <fieldset class="range">
+          <legend>x</legend>
+          <input id="xMin" type="number" step="any" aria-label="x min" />
+          <span>to</span>
+          <input id="xMax" type="number" step="any" aria-label="x max" />
+        </fieldset>
+        <fieldset class="range">
+          <legend>y</legend>
+          <input id="yMin" type="number" step="any" aria-label="y min" />
+          <span>to</span>
+          <input id="yMax" type="number" step="any" aria-label="y max" />
+        </fieldset>
 
-      <button id="resetView" type="button">Reset view</button>
+        <label class="row">
+          <span>Resolution <output id="resOut"></output></span>
+          <input id="resolution" type="range" min="10" max="400" step="10" />
+        </label>
+
+        <div class="checks">
+          <label><input id="fitZ" type="checkbox" /> Fit z to view</label>
+          <label><input id="meshLines" type="checkbox" /> Mesh lines</label>
+        </div>
+
+        <fieldset class="slice" data-axis="x">
+          <label><input id="sliceX" type="checkbox" /> Slice at x = x₀</label>
+          <div id="sliceXControls" class="slice-controls">
+            <input id="x0Slider" type="range" aria-label="x₀ slider" />
+            <input id="x0" type="number" step="any" aria-label="x₀" />
+          </div>
+        </fieldset>
+
+        <fieldset class="slice" data-axis="y">
+          <label><input id="sliceY" type="checkbox" /> Slice at y = y₀</label>
+          <div id="sliceYControls" class="slice-controls">
+            <input id="y0Slider" type="range" aria-label="y₀ slider" />
+            <input id="y0" type="number" step="any" aria-label="y₀" />
+          </div>
+        </fieldset>
+
+        <button id="resetView" type="button">Reset view</button>
+      </div>
+
       <p id="status" role="status"></p>
     </form>
 

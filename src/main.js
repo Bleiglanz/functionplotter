@@ -236,6 +236,27 @@ panel.addEventListener('submit', (e) => {
 });
 $('resetView').addEventListener('click', () => plot.resetView());
 
+// On small screens the panel collapses to just the expression field (CSS ignores
+// the class on wide screens). The choice is remembered per browser; the first
+// visit on a phone starts collapsed so the plot is visible.
+const panelToggle = $('panelToggle');
+function setPanelCollapsed(collapsed) {
+  panel.classList.toggle('collapsed', collapsed);
+  panelToggle.setAttribute('aria-expanded', String(!collapsed));
+}
+let storedCollapsed = null;
+try {
+  storedCollapsed = localStorage.getItem('panelCollapsed');
+} catch {}
+setPanelCollapsed(storedCollapsed == null ? matchMedia('(max-width: 600px)').matches : storedCollapsed === '1');
+panelToggle.addEventListener('click', () => {
+  const collapsed = !panel.classList.contains('collapsed');
+  setPanelCollapsed(collapsed);
+  try {
+    localStorage.setItem('panelCollapsed', collapsed ? '1' : '0');
+  } catch {}
+});
+
 plot.renderer.domElement.addEventListener('pointermove', (e) => {
   const p = plot.pick(e.clientX, e.clientY);
   readout.hidden = !p;

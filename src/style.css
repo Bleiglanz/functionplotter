@@ -81,7 +81,41 @@ fieldset {
   gap: 4px;
 }
 
-.expr span,
+.expr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-body {
+  display: grid;
+  gap: 12px;
+}
+
+/* Only shown on small screens; see the media query below. */
+.panel-toggle {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.panel-toggle svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.15s;
+}
+
+.panel-toggle[aria-expanded='false'] svg {
+  transform: rotate(180deg);
+}
+
+.expr label,
 .row > span,
 legend {
   color: var(--muted);
@@ -330,6 +364,17 @@ button:hover {
     max-height: 45vh;
     width: auto;
     right: 16px;
+  }
+  .panel-toggle {
+    display: inline-flex;
+  }
+  .expr-head {
+    min-height: 24px;
+  }
+  /* Collapsed: just the expression field, plus the status line when it has a message. */
+  #panel.collapsed .panel-body,
+  #panel.collapsed #status:empty {
+    display: none;
   }
   #charts {
     top: 16px;
