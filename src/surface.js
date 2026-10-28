@@ -84,3 +84,100 @@ export function gridIndices(z, n) {
   }
   return indices;
 }
+
+/**
+ * Partial derivatives of f at (x, y) by central differences, falling back to a
+ * one-sided difference where f is undefined on one side (e.g. at the edge of
+ * the domain of sqrt). Returns { fx, fy }, or null if either is not finite.
+ */
+export function partials(f, x, y) {
+  const at = (a, b) => {
+    try {
+      return f(a, b);
+    } catch {
+      return NaN;
+    }
+  };
+  const z = at(x, y);
+  const derivative = (g, t) => {
+    const h = 1e-5 * Math.max(1, Math.abs(t));
+    const fwd = g(t + h);
+    const back = g(t - h);
+    if (Number.isFinite(fwd) && Number.isFinite(back)) return (fwd - back) / (2 * h);
+    if (Number.isFinite(fwd)) return (fwd - z) / h;
+    if (Number.isFinite(back)) return (z - back) / h;
+    return NaN;
+  };
+  const fx = derivative((t) => at(t, y), x);
+  const fy = derivative((t) => at(x, t), y);
+  return Number.isFinite(z) && Number.isFinite(fx) && Number.isFinite(fy) ? { fx, fy } : null;
+}
+
+/**
+ * Two tangent directions (dx, dy) at a point of the graph z = f(x, y) with
+ * partials fx, fy, orthonormal in the surface's metric: the 3D vectors
+ * (dx, dy, fx dx + fy dy) have unit length and are perpendicular. The first
+ * points along +x.
+ */
+export function tangentBasis(fx, fy) {
+  const a = Math.sqrt(1 + fx * fx);
+  const w = Math.sqrt(1 + fx * fx + fy * fy);
+  return [
+    { dx: 1 / a, dy: 0 },
+    { dx: (-fx * fy) / (a * w), dy: a / w },
+  ];
+}
+
+/**
+ * Traces the geodesic of the graph z = f(x, y) from (x, y) with initial
+ * velocity (vx, vy) in the xy-plane (the 3D velocity being (vx, vy, fx vx + fy vy)).
+ * In graph coordinates the geodesic equations reduce to
+ *   x'' = -fx K,  y'' = -fy K,  K = (fxx x'² + 2 fxy x'y' + fyy y'²) / (1 + fx² + fy²),
+ * integrated with RK4 at a fixed parameter step. Derivatives are taken by
+ * central differences. Stops on leaving the domain, where f or its derivatives
+ * are not finite, or after maxSteps. Returns the points [{ x, y, z }, ...],
+ * starting at (x, y).
+ */
+export function geodesic(f, x, y, vx, vy, { xMin, xMax, yMin, yMax, step, maxSteps }) {
+  const at = (a, b) => {
+    try {
+      return f(a, b);
+    } catch {
+      return NaN;
+    }
+  };
+  const accel = (px, py, u, v) => {
+    const h = 1e-4 * Math.max(1, Math.abs(px), Math.abs(py));
+    const z = at(px, py);
+    const zxp = at(px + h, py);
+    const zxm = at(px - h, py);
+    const zyp = at(px, py + h);
+    const zym = at(px, py - h);
+    const fx = (zxp - zxm) / (2 * h);
+    const fy = (zyp - zym) / (2 * h);
+    const fxx = (zxp - 2 * z + zxm) / (h * h);
+    const fyy = (zyp - 2 * z + zym) / (h * h);
+    const fxy = (at(px + h, py + h) - at(px + h, py - h) - at(px - h, py + h) + at(px - h, py - h)) / (4 * h * h);
+    const k = (fxx * u * u + 2 * fxy * u * v + fyy * v * v) / (1 + fx * fx + fy * fy);
+    return [-fx * k, -fy * k];
+  };
+  const inside = (px, py) => px >= xMin && px <= xMax && py >= yMin && py <= yMax;
+
+  const points = [];
+  let s = [x, y, vx, vy];
+  const deriv = ([px, py, u, v]) => [u, v, ...accel(px, py, u, v)];
+  const plus = (a, k, c) => a.map((ai, i) => ai + c * k[i]);
+  for (let i = 0; i <= maxSteps; i++) {
+    const z = at(s[0], s[1]);
+    if (!inside(s[0], s[1]) || !Number.isFinite(z)) break;
+    points.push({ x: s[0], y: s[1], z });
+    const k1 = deriv(s);
+    const k2 = deriv(plus(s, k1, step / 2));
+    const k3 = deriv(plus(s, k2, step / 2));
+    const k4 = deriv(plus(s, k3, step));
+    const next = s.map((si, j) => si + (step / 6) * (k1[j] + 2 * k2[j] + 2 * k3[j] + k4[j]));
+    if (!next.every(Number.isFinite)) break;
+    s = next;
+  }
+  return points;
+}

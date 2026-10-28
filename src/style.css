@@ -10,6 +10,9 @@
   --frame: #9a9a96;
   --slice-x: #e06c00;
   --slice-y: #d61f5b;
+  --tangent: #3355dd;
+  --geodesic: #1d1d1f;
+  --tangent-vector: #d11a1a;
   color-scheme: light;
 }
 
@@ -26,6 +29,9 @@
     --frame: #5a5b62;
     --slice-x: #df7400;
     --slice-y: #f0507e;
+    --tangent: #9db0ff;
+    --geodesic: #f4f4f2;
+    --tangent-vector: #ff5a52;
     color-scheme: dark;
   }
 }
@@ -244,6 +250,48 @@ button:hover {
 
 #status.error {
   color: var(--error);
+}
+
+#panel .hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#tangent {
+  border-left: 3px solid var(--tangent);
+  padding-left: 8px;
+  font-size: 12px;
+}
+
+.tangent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+#tangentEq {
+  display: block;
+  margin-top: 4px;
+  font: 12px ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+#geodesicInfo {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+#geodesicInfo::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: var(--geodesic);
 }
 
 #readout {

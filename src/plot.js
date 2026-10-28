@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
-import { sampleSurface, sampleSlice, gridIndices } from './surface.js';
+import { sampleSurface, sampleSlice, gridIndices, partials, tangentBasis, geodesic } from './surface.js';
 import { formatNumber as fmt } from './format.js';
 import { viridis } from './colormap.js';
 
@@ -14,6 +14,14 @@ const SLICE_SAMPLES = 800;
 // Slices are keyed by the axis held fixed: 'y' is the plane y = y0 with curve
 // x -> f(x, y0); 'x' is the plane x = x0 with curve y -> f(x0, y).
 const SLICE_AXES = ['x', 'y'];
+// Segments of the unit circle drawn in the tangent plane.
+const CIRCLE_SEGMENTS = 128;
+// Geodesics are integrated in steps of span / GEODESIC_RESOLUTION, for at most
+// GEODESIC_STEPS steps each way (so up to 4 spans long in each direction).
+const GEODESIC_RESOLUTION = 400;
+const GEODESIC_STEPS = 1600;
+// How close (in CSS px) a click must be to the unit circle to pick a direction.
+const CIRCLE_PICK_PX = 10;
 
 /**
  * Owns the three.js scene. Math coordinates (x, y, z = f(x, y)) are mapped to
@@ -58,6 +66,15 @@ export class SurfacePlot {
       // data: { axis, value, tMin, tMax, ts, zs, zMin, zMax } while visible, else null.
       this.slices[axis] = { value: null, data: null, group, marker };
     }
+    // Tangent plane at a clicked point. point: { x, y } or null; direction: angle
+    // on the unit circle (from tangentBasis) of the geodesic's initial velocity, or null.
+    // data: { x, y, z, fx, fy, velocity } while shown, else null; velocity is the
+    // geodesic's unit initial velocity { x, y, z }, or null.
+    // ring: the unit circle's points in world space, for picking; plane: the
+    // tangent plane in world space and axes: the 3D unit vectors at θ = 0 and
+    // θ = π/2 in math space, for turning a dragged pointer into an angle.
+    this.tangent = { point: null, direction: null, data: null, ring: null, plane: null, axes: null, group: new THREE.Group() };
+    this.scene.add(this.tangent.group);
 
     this.material = new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -85,10 +102,14 @@ export class SurfacePlot {
     });
   }
 
-  /** sliceColors: { x, y } CSS colors of the two slices. */
-  setTheme({ background, frame, text, sliceColors }) {
+  /**
+   * sliceColors: { x, y } CSS colors of the two slices; tangent: color of the
+   * tangent plane and its unit circle; geodesic: color of the geodesic;
+   * tangentVector: color of its initial unit velocity.
+   */
+  setTheme({ background, frame, text, sliceColors, tangent, geodesic, tangentVector }) {
     this.scene.background = new THREE.Color(background);
-    this.theme = { frame, text, sliceColors };
+    this.theme = { frame, text, sliceColors, tangent, geodesic, tangentVector };
     if (this.last) this.plot(this.last.f, this.last.options);
   }
 
@@ -135,6 +156,7 @@ export class SurfacePlot {
     const cz = (zMin + zMax) / 2;
     this.toWorld = (x, y, zv) => new THREE.Vector3(x - cx, y - cy, (zv - cz) * zScale);
     this.fromWorld = (p) => ({ x: p.x + cx, y: p.y + cy, z: p.z / zScale + cz });
+    this.zScale = zScale;
 
     this.clear();
     this.view = { f, options, zMin, zMax };
@@ -166,6 +188,7 @@ export class SurfacePlot {
     this.content.add(...this.buildFrame(options, zMin, zMax));
 
     for (const axis of SLICE_AXES) this.renderSlice(axis);
+    this.renderTangent();
 
     if (!this.hasFramed) {
       this.resetView();
@@ -286,18 +309,7 @@ export class SurfacePlot {
       if (p && prev) verts.push(prev.x, prev.y, prev.z, p.x, p.y, p.z);
       prev = p;
     }
-    if (verts.length) {
-      // Drawn twice: faintly on top of everything so parts behind the surface stay
-      // visible, then solid with depth testing for the unobstructed parts.
-      const hidden = new LineSegments2(
-        new LineSegmentsGeometry().setPositions(verts),
-        new LineMaterial({ color, linewidth: 2, transparent: true, opacity: 0.35, depthTest: false }),
-      );
-      hidden.renderOrder = 1;
-      const curve = new LineSegments2(hidden.geometry, new LineMaterial({ color, linewidth: 3 }));
-      curve.renderOrder = 2;
-      slice.group.add(hidden, curve);
-    }
+    if (verts.length) slice.group.add(...seeThroughLines(verts, color, 3));
 
     const size = width * 0.045;
     const label = makeLabel(`${axis} = ${+v.toPrecision(4)}`, `#${color.getHexString()}`, size);
@@ -311,6 +323,166 @@ export class SurfacePlot {
     marker.visible = t != null && data != null;
     if (!marker.visible) return;
     marker.position.copy(axis === 'y' ? this.toWorld(t, data.value, z) : this.toWorld(data.value, t, z));
+  }
+
+  /**
+   * Shows the tangent plane to the surface at (x, y, f(x, y)), or hides it when
+   * point is null, and clears any geodesic. Returns tangent.data: null if f has
+   * no tangent plane there.
+   */
+  setTangent(point) {
+    this.tangent.point = point;
+    this.tangent.direction = null;
+    this.renderTangent();
+    return this.tangent.data;
+  }
+
+  /** Draws the geodesic whose initial velocity is the unit-circle point at angle theta. */
+  setGeodesic(theta) {
+    this.tangent.direction = theta;
+    this.renderTangent();
+    return this.tangent.data;
+  }
+
+  // A square patch of the plane z = z0 + fx (x - x0) + fy (y - y0) around the
+  // point, clipped to the domain, with an outline, a dot at the point and the
+  // unit circle of tangent vectors. With a direction, also the unit vector and
+  // the geodesic it starts, traced both ways.
+  renderTangent() {
+    const tangent = this.tangent;
+    disposeChildren(tangent.group);
+    tangent.data = null;
+    tangent.ring = null;
+    tangent.plane = null;
+    tangent.axes = null;
+    if (!tangent.point || !this.view) return;
+    const { f, options } = this.view;
+    const { xMin, xMax, yMin, yMax } = options;
+    const { x, y } = tangent.point;
+    if (x < xMin || x > xMax || y < yMin || y > yMax) return;
+    const d = partials(f, x, y);
+    if (!d) return;
+    const z = f(x, y);
+    const { fx, fy } = d;
+    tangent.data = { x, y, z, fx, fy, velocity: null };
+
+    // Shrink the patch on steep planes so it doesn't tower over the plot.
+    const span = Math.max(xMax - xMin, yMax - yMin);
+    const rise = (Math.abs(fx) + Math.abs(fy)) * this.zScale;
+    const r = Math.max(0.02 * span, Math.min(0.15 * span, (0.4 * span) / (rise || Infinity)));
+    const x0 = Math.max(xMin, x - r);
+    const x1 = Math.min(xMax, x + r);
+    const y0 = Math.max(yMin, y - r);
+    const y1 = Math.min(yMax, y + r);
+    const plane = (px, py) => this.toWorld(px, py, z + fx * (px - x) + fy * (py - y));
+    const corners = [plane(x0, y0), plane(x1, y0), plane(x1, y1), plane(x0, y1)];
+
+    const color = new THREE.Color(this.theme?.tangent ?? '#3355dd');
+    const geometry = new THREE.BufferGeometry().setFromPoints(corners);
+    geometry.setIndex([0, 1, 2, 0, 2, 3]);
+    const patch = new THREE.Mesh(
+      geometry,
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }),
+    );
+    const outline = new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints(corners),
+      new THREE.LineBasicMaterial({ color }),
+    );
+    const marker = new THREE.Mesh(
+      new THREE.SphereGeometry(span * 0.012, 16, 12),
+      new THREE.MeshBasicMaterial({ color, depthTest: false }),
+    );
+    marker.renderOrder = 3;
+    marker.position.copy(this.toWorld(x, y, z));
+    tangent.group.add(patch, outline, marker);
+
+    // Unit circle: (x, y, z) + cos θ e1 + sin θ e2, with e1, e2 orthonormal in 3D.
+    // It's a circle in math units, so with fitZ it shows as an ellipse.
+    const [e1, e2] = tangentBasis(fx, fy);
+    const unit = (theta) => {
+      const dx = Math.cos(theta) * e1.dx + Math.sin(theta) * e2.dx;
+      const dy = Math.cos(theta) * e1.dy + Math.sin(theta) * e2.dy;
+      return { x: dx, y: dy, z: fx * dx + fy * dy };
+    };
+    const tip = (v) => this.toWorld(x + v.x, y + v.y, z + v.z);
+    tangent.ring = [];
+    for (let i = 0; i <= CIRCLE_SEGMENTS; i++) tangent.ring.push(tip(unit((2 * Math.PI * i) / CIRCLE_SEGMENTS)));
+    tangent.group.add(...seeThroughLines(segmentsOf(tangent.ring), color, 2));
+    tangent.axes = [unit(0), unit(Math.PI / 2)];
+    tangent.plane = new THREE.Plane().setFromCoplanarPoints(this.toWorld(x, y, z), ...tangent.axes.map(tip));
+
+    if (tangent.direction == null) return;
+    const v = unit(tangent.direction);
+    tangent.data.velocity = v;
+    const opts = { xMin, xMax, yMin, yMax, step: span / GEODESIC_RESOLUTION, maxSteps: GEODESIC_STEPS };
+    const forward = geodesic(f, x, y, v.x, v.y, opts);
+    const backward = geodesic(f, x, y, -v.x, -v.y, opts);
+    const path = [...backward.reverse(), ...forward.slice(1)].map((p) => this.toWorld(p.x, p.y, p.z));
+    const geoColor = new THREE.Color(this.theme?.geodesic ?? '#1d1d1f');
+    if (path.length > 1) tangent.group.add(...seeThroughLines(segmentsOf(path), geoColor, 3));
+    const vectorColor = new THREE.Color(this.theme?.tangentVector ?? '#d11a1a');
+    const arrow = new LineSegments2(
+      new LineSegmentsGeometry().setPositions(segmentsOf([this.toWorld(x, y, z), tip(v)])),
+      new LineMaterial({ color: vectorColor, linewidth: 4, depthTest: false }),
+    );
+    arrow.renderOrder = 3;
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(span * 0.01, 16, 12),
+      new THREE.MeshBasicMaterial({ color: vectorColor, depthTest: false }),
+    );
+    head.renderOrder = 3;
+    head.position.copy(tip(v));
+    tangent.group.add(arrow, head);
+  }
+
+  /**
+   * Returns the angle θ on the unit circle of the tangent plane point under the
+   * given client coordinates, or null if there is no tangent plane or the view
+   * ray misses it. Unlike pickDirection, the pointer needn't be near the circle.
+   */
+  directionAt(clientX, clientY) {
+    const { plane, axes, data } = this.tangent;
+    if (!plane) return null;
+    this.setPointer(clientX, clientY);
+    const hit = this.raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+    if (!hit) return null;
+    const p = this.fromWorld(hit);
+    const dx = p.x - data.x;
+    const dy = p.y - data.y;
+    const w = [dx, dy, data.fx * dx + data.fy * dy];
+    const dot = (a) => a.x * w[0] + a.y * w[1] + a.z * w[2];
+    return Math.atan2(dot(axes[1]), dot(axes[0]));
+  }
+
+  /**
+   * Returns the angle θ of the point on the tangent plane's unit circle nearest
+   * the given client coordinates, or null if none is within CIRCLE_PICK_PX.
+   */
+  pickDirection(clientX, clientY) {
+    const ring = this.tangent.ring;
+    if (!ring) return null;
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const screen = ring.map((p) => {
+      const s = p.clone().project(this.camera);
+      return s.z > 1 ? null : { x: rect.left + ((s.x + 1) / 2) * rect.width, y: rect.top + ((1 - s.y) / 2) * rect.height };
+    });
+    let best = null;
+    let bestDist = CIRCLE_PICK_PX;
+    for (let i = 0; i < CIRCLE_SEGMENTS; i++) {
+      const a = screen[i];
+      const b = screen[i + 1];
+      if (!a || !b) continue;
+      const ex = b.x - a.x;
+      const ey = b.y - a.y;
+      const len2 = ex * ex + ey * ey;
+      const t = len2 ? Math.min(1, Math.max(0, ((clientX - a.x) * ex + (clientY - a.y) * ey) / len2)) : 0;
+      const dist = Math.hypot(clientX - a.x - t * ex, clientY - a.y - t * ey);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = (2 * Math.PI * (i + t)) / CIRCLE_SEGMENTS;
+      }
+    }
+    return best;
   }
 
   clear() {
@@ -340,11 +512,16 @@ export class SurfacePlot {
   /** Returns {x, y, z} on the surface under the given client coordinates, or null. */
   pick(clientX, clientY) {
     if (!this.surface) return null;
+    this.setPointer(clientX, clientY);
+    const hit = this.raycaster.intersectObject(this.surface)[0];
+    return hit ? this.fromWorld(hit.point) : null;
+  }
+
+  // Aims the raycaster through the given client coordinates.
+  setPointer(clientX, clientY) {
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.pointer.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
     this.raycaster.setFromCamera(this.pointer, this.camera);
-    const hit = this.raycaster.intersectObject(this.surface)[0];
-    return hit ? this.fromWorld(hit.point) : null;
   }
 }
 
@@ -358,6 +535,30 @@ function disposeChildren(group, keep) {
       obj.material.dispose();
     }
   }
+}
+
+// Flat [x, y, z, ...] segment list for a polyline of Vector3 points.
+function segmentsOf(points) {
+  const verts = [];
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    verts.push(a.x, a.y, a.z, b.x, b.y, b.z);
+  }
+  return verts;
+}
+
+// A fat line drawn twice: faintly on top of everything so parts behind the
+// surface stay visible, then solid with depth testing for the unobstructed parts.
+function seeThroughLines(verts, color, linewidth) {
+  const hidden = new LineSegments2(
+    new LineSegmentsGeometry().setPositions(verts),
+    new LineMaterial({ color, linewidth: linewidth - 1, transparent: true, opacity: 0.35, depthTest: false }),
+  );
+  hidden.renderOrder = 1;
+  const solid = new LineSegments2(hidden.geometry, new LineMaterial({ color, linewidth }));
+  solid.renderOrder = 2;
+  return [hidden, solid];
 }
 
 function makeLabel(text, color, height) {

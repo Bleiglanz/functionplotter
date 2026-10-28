@@ -68,10 +68,21 @@
           </div>
         </fieldset>
 
+        <p class="hint">Click the surface to show its tangent plane, then click or drag its unit circle to trace a geodesic.</p>
+
         <button id="resetView" type="button">Reset view</button>
       </div>
 
       <p id="status" role="status"></p>
+
+      <div id="tangent" hidden>
+        <div class="tangent-head">
+          <span id="tangentPoint"></span>
+          <button id="clearTangent" type="button">Clear</button>
+        </div>
+        <code id="tangentEq"></code>
+        <p id="geodesicInfo"></p>
+      </div>
     </form>
 
     <div id="readout" hidden></div>

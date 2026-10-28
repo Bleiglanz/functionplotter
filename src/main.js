@@ -46,6 +46,7 @@ const fields = {
 };
 const status = $('status');
 const readout = $('readout');
+const tangentInfo = $('tangent');
 
 const plot = new SurfacePlot($('viewport'));
 const panel = $('panel');
@@ -149,6 +150,7 @@ function render() {
   for (const axis in SLICES) SLICES[axis].chart.update(plot.slices[axis].data);
   updateChartInset();
   if (framing) plot.resetView(); // again, now that the chart inset is known
+  showTangentInfo(plot.tangent.data);
   status.className = finite ? '' : 'error';
   status.textContent = finite
     ? `z from ${fmt(zMin)} to ${fmt(zMax)} · ${ms} ms`
@@ -192,6 +194,81 @@ function updateSlice(axis) {
 function updateChartInset() {
   const visible = [...charts.children].some((c) => !c.hidden);
   plot.setInsets({ right: visible ? window.innerWidth - charts.getBoundingClientRect().left : 0 });
+}
+
+// --- Tangent plane ------------------------------------------------------------
+
+// "+ 2 (x − 1)" style term; the constant c is subtracted from v.
+function linearTerm(coef, v, c) {
+  const sign = coef < 0 ? '−' : '+';
+  const shifted = c === 0 ? v : `(${v} ${c < 0 ? '+' : '−'} ${fmt(Math.abs(c))})`;
+  return ` ${sign} ${fmt(Math.abs(coef))} ${shifted}`;
+}
+
+function showTangentInfo(t) {
+  tangentInfo.hidden = !t;
+  if (!t) return;
+  $('tangentPoint').textContent = `Tangent plane at (${fmt(t.x)}, ${fmt(t.y)}, ${fmt(t.z)})`;
+  $('tangentEq').textContent = `z = ${fmt(t.z).replace('-', '−')}${linearTerm(t.fx, 'x', t.x)}${linearTerm(t.fy, 'y', t.y)}`;
+  const v = t.velocity;
+  $('geodesicInfo').textContent = v
+    ? `Geodesic with γ′(0) = (${fmt(v.x)}, ${fmt(v.y)}, ${fmt(v.z)})`
+    : 'Click or drag the unit circle to trace a geodesic.';
+}
+
+// Pressing on the tangent plane's unit circle traces the geodesic in that direction,
+// and dragging turns it live; clicking the surface elsewhere shows the tangent plane
+// there; clicking the background clears it. A pointer that moved more than a few
+// pixels was an orbit drag, not a click.
+const canvas = plot.renderer.domElement;
+let pointerDown = null;
+// While dragging the unit vector: { theta, frame } with the latest pointer angle and
+// the pending animation frame, so the geodesic is retraced at most once per frame.
+let drag = null;
+
+// Capture phase on the viewport runs before OrbitControls' own listener on the
+// canvas, so disabling the controls here keeps a drag on the circle from orbiting.
+$('viewport').addEventListener(
+  'pointerdown',
+  (e) => {
+    const theta = plot.pickDirection(e.clientX, e.clientY);
+    if (theta == null) return;
+    drag = { theta: null, frame: 0 };
+    plot.controls.enabled = false;
+    canvas.setPointerCapture(e.pointerId);
+    canvas.style.cursor = 'grabbing';
+    showTangentInfo(plot.setGeodesic(theta));
+  },
+  { capture: true },
+);
+canvas.addEventListener('pointerdown', (e) => (pointerDown = { x: e.clientX, y: e.clientY }));
+canvas.addEventListener('pointerup', (e) => {
+  const down = pointerDown;
+  pointerDown = null;
+  if (drag) return endDrag();
+  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4) return;
+  const p = plot.pick(e.clientX, e.clientY);
+  showTangentInfo(plot.setTangent(p && { x: p.x, y: p.y }));
+});
+canvas.addEventListener('pointercancel', () => drag && endDrag());
+$('clearTangent').addEventListener('click', () => showTangentInfo(plot.setTangent(null)));
+
+function moveDrag(e) {
+  const theta = plot.directionAt(e.clientX, e.clientY);
+  if (theta == null) return;
+  drag.theta = theta;
+  drag.frame ||= requestAnimationFrame(() => {
+    drag.frame = 0;
+    showTangentInfo(plot.setGeodesic(drag.theta));
+  });
+}
+
+function endDrag() {
+  cancelAnimationFrame(drag.frame);
+  if (drag.theta != null) showTangentInfo(plot.setGeodesic(drag.theta));
+  drag = null;
+  plot.controls.enabled = true;
+  canvas.style.cursor = '';
 }
 
 let pending = 0;
@@ -257,12 +334,14 @@ panelToggle.addEventListener('click', () => {
   } catch {}
 });
 
-plot.renderer.domElement.addEventListener('pointermove', (e) => {
+canvas.addEventListener('pointermove', (e) => {
+  if (drag) return moveDrag(e);
+  canvas.style.cursor = plot.pickDirection(e.clientX, e.clientY) == null ? '' : 'grab';
   const p = plot.pick(e.clientX, e.clientY);
   readout.hidden = !p;
   if (p) readout.textContent = `x ${fmt(p.x)}  y ${fmt(p.y)}  f ${fmt(p.z)}`;
 });
-plot.renderer.domElement.addEventListener('pointerleave', () => (readout.hidden = true));
+canvas.addEventListener('pointerleave', () => (readout.hidden = true));
 
 function applyTheme() {
   const css = getComputedStyle(document.documentElement);
@@ -274,6 +353,9 @@ function applyTheme() {
       x: css.getPropertyValue('--slice-x').trim(),
       y: css.getPropertyValue('--slice-y').trim(),
     },
+    tangent: css.getPropertyValue('--tangent').trim(),
+    geodesic: css.getPropertyValue('--geodesic').trim(),
+    tangentVector: css.getPropertyValue('--tangent-vector').trim(),
   });
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);

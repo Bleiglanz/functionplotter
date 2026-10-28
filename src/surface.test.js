@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { compileFunction } from './expression.js';
-import { sampleSurface, sampleSlice, gridIndices } from './surface.js';
+import { sampleSurface, sampleSlice, gridIndices, partials, tangentBasis, geodesic } from './surface.js';
 import { niceTicks } from './format.js';
 
 describe('compileFunction', () => {
@@ -66,6 +66,66 @@ describe('sampleSlice', () => {
     expect(zs[0]).toBe(-3);
     expect(Number.isNaN(zs[1])).toBe(true);
     expect([zMin, zMax]).toEqual([-3, 3]);
+  });
+});
+
+describe('partials', () => {
+  it('approximates the gradient by central differences', () => {
+    const { fx, fy } = partials((x, y) => x * x * y + Math.sin(y), 2, 1);
+    expect(fx).toBeCloseTo(4, 6);
+    expect(fy).toBeCloseTo(4 + Math.cos(1), 6);
+  });
+
+  it('falls back to a one-sided difference at the edge of the domain', () => {
+    const { fx } = partials((x) => (x < 0 ? NaN : 3 * x), 0, 0);
+    expect(fx).toBeCloseTo(3, 6);
+  });
+
+  it('returns null where f is undefined', () => {
+    expect(partials(() => NaN, 0, 0)).toBeNull();
+    expect(partials((x) => Math.sqrt(-x * x), 0, 0)).toBeNull();
+  });
+});
+
+describe('tangentBasis', () => {
+  it('is orthonormal in the surface metric', () => {
+    const fx = 1.5;
+    const fy = -0.7;
+    const lift = ({ dx, dy }) => [dx, dy, fx * dx + fy * dy];
+    const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    const [e1, e2] = tangentBasis(fx, fy).map(lift);
+    expect(dot(e1, e1)).toBeCloseTo(1, 12);
+    expect(dot(e2, e2)).toBeCloseTo(1, 12);
+    expect(dot(e1, e2)).toBeCloseTo(0, 12);
+    expect(e1[1]).toBe(0);
+  });
+});
+
+describe('geodesic', () => {
+  const box = { xMin: -3, xMax: 3, yMin: -3, yMax: 3, step: 0.01, maxSteps: 1000 };
+
+  it('is a straight line on a plane', () => {
+    const points = geodesic((x, y) => 2 * x + y, 0, 0, 0.3, 0.4, box);
+    const last = points.at(-1);
+    expect(last.x * 0.4 - last.y * 0.3).toBeCloseTo(0, 6);
+    expect(last.x).toBeGreaterThan(1);
+  });
+
+  it('follows a great circle on a sphere', () => {
+    const f = (x, y) => Math.sqrt(4 - x * x - y * y);
+    const v = Math.hypot(1, 0.5); // at the top the metric is Euclidean, so this is the 3D speed
+    const points = geodesic(f, 0, 0, 1 / v, 0.5 / v, { ...box, maxSteps: 150 });
+    expect(points).toHaveLength(151);
+    // The great circle through the top in direction (1, 0.5) lies in the plane x = 2y.
+    for (const p of points) expect(p.x - 2 * p.y).toBeCloseTo(0, 6);
+    // Unit-speed parametrization at step 0.01: the arc length is 1.5, i.e. the
+    // angle from the top on the radius-2 sphere is 0.75.
+    expect(points.at(-1).z).toBeCloseTo(2 * Math.cos(0.75), 3);
+  });
+
+  it('stops at the edge of the domain', () => {
+    const points = geodesic(() => 0, 2.9, 0, 1, 0, box);
+    expect(points).toHaveLength(11);
   });
 });
 
