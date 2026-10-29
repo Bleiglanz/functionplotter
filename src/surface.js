@@ -1,3 +1,14 @@
+/** Wraps f so that a thrown evaluation error returns NaN instead. */
+function safe(f) {
+  return (...args) => {
+    try {
+      return f(...args);
+    } catch {
+      return NaN;
+    }
+  };
+}
+
 /**
  * Samples f on a regular (resolution+1) x (resolution+1) grid over the domain.
  * Pure math, no three.js, so it can be unit tested.
@@ -8,6 +19,7 @@
  */
 export function sampleSurface(f, { xMin, xMax, yMin, yMax, resolution }) {
   const n = resolution;
+  const at = safe(f);
   const z = new Float64Array((n + 1) * (n + 1));
   let zMin = Infinity;
   let zMax = -Infinity;
@@ -16,12 +28,7 @@ export function sampleSurface(f, { xMin, xMax, yMin, yMax, resolution }) {
     const y = yMin + ((yMax - yMin) * j) / n;
     for (let i = 0; i <= n; i++) {
       const x = xMin + ((xMax - xMin) * i) / n;
-      let v;
-      try {
-        v = f(x, y);
-      } catch {
-        v = NaN;
-      }
+      let v = at(x, y);
       if (Number.isFinite(v)) {
         if (v < zMin) zMin = v;
         if (v > zMax) zMax = v;
@@ -41,18 +48,14 @@ export function sampleSurface(f, { xMin, xMax, yMin, yMax, resolution }) {
  * sampleSurface.
  */
 export function sampleSlice(g, tMin, tMax, samples) {
+  const at = safe(g);
   const ts = new Float64Array(samples + 1);
   const zs = new Float64Array(samples + 1);
   let zMin = Infinity;
   let zMax = -Infinity;
   for (let i = 0; i <= samples; i++) {
     const t = tMin + ((tMax - tMin) * i) / samples;
-    let v;
-    try {
-      v = g(t);
-    } catch {
-      v = NaN;
-    }
+    let v = at(t);
     if (Number.isFinite(v)) {
       if (v < zMin) zMin = v;
       if (v > zMax) zMax = v;
@@ -88,16 +91,10 @@ export function gridIndices(z, n) {
 /**
  * Partial derivatives of f at (x, y) by central differences, falling back to a
  * one-sided difference where f is undefined on one side (e.g. at the edge of
- * the domain of sqrt). Returns { fx, fy }, or null if either is not finite.
+ * the domain of sqrt). Returns { z, fx, fy } with z = f(x, y), or null if any is not finite.
  */
 export function partials(f, x, y) {
-  const at = (a, b) => {
-    try {
-      return f(a, b);
-    } catch {
-      return NaN;
-    }
-  };
+  const at = safe(f);
   const z = at(x, y);
   const derivative = (g, t) => {
     const h = 1e-5 * Math.max(1, Math.abs(t));
@@ -110,7 +107,7 @@ export function partials(f, x, y) {
   };
   const fx = derivative((t) => at(t, y), x);
   const fy = derivative((t) => at(x, t), y);
-  return Number.isFinite(z) && Number.isFinite(fx) && Number.isFinite(fy) ? { fx, fy } : null;
+  return Number.isFinite(z) && Number.isFinite(fx) && Number.isFinite(fy) ? { z, fx, fy } : null;
 }
 
 /**
@@ -139,13 +136,7 @@ export function tangentBasis(fx, fy) {
  * starting at (x, y).
  */
 export function geodesic(f, x, y, vx, vy, { xMin, xMax, yMin, yMax, step, maxSteps }) {
-  const at = (a, b) => {
-    try {
-      return f(a, b);
-    } catch {
-      return NaN;
-    }
-  };
+  const at = safe(f);
   const accel = (px, py, u, v) => {
     const h = 1e-4 * Math.max(1, Math.abs(px), Math.abs(py));
     const z = at(px, py);
@@ -157,7 +148,8 @@ export function geodesic(f, x, y, vx, vy, { xMin, xMax, yMin, yMax, step, maxSte
     const fy = (zyp - zym) / (2 * h);
     const fxx = (zxp - 2 * z + zxm) / (h * h);
     const fyy = (zyp - 2 * z + zym) / (h * h);
-    const fxy = (at(px + h, py + h) - at(px + h, py - h) - at(px - h, py + h) + at(px - h, py - h)) / (4 * h * h);
+    // Seven-point stencil, reusing the axis samples: two more evals instead of four.
+    const fxy = (at(px + h, py + h) + at(px - h, py - h) - zxp - zxm - zyp - zym + 2 * z) / (2 * h * h);
     const k = (fxx * u * u + 2 * fxy * u * v + fyy * v * v) / (1 + fx * fx + fy * fy);
     return [-fx * k, -fy * k];
   };

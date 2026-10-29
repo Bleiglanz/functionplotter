@@ -222,25 +222,18 @@ function showTangentInfo(t) {
 // pixels was an orbit drag, not a click.
 const canvas = plot.renderer.domElement;
 let pointerDown = null;
-// While dragging the unit vector: { theta, frame } with the latest pointer angle and
-// the pending animation frame, so the geodesic is retraced at most once per frame.
+// While dragging the unit vector: { theta, drawn, frame } with the latest pointer
+// angle, the angle last drawn and the pending animation frame, so the geodesic is
+// retraced at most once per frame.
 let drag = null;
 
-// Capture phase on the viewport runs before OrbitControls' own listener on the
-// canvas, so disabling the controls here keeps a drag on the circle from orbiting.
-$('viewport').addEventListener(
-  'pointerdown',
-  (e) => {
-    const theta = plot.pickDirection(e.clientX, e.clientY);
-    if (theta == null) return;
-    drag = { theta: null, frame: 0 };
-    plot.controls.enabled = false;
-    canvas.setPointerCapture(e.pointerId);
-    canvas.style.cursor = 'grabbing';
-    showTangentInfo(plot.setGeodesic(theta));
-  },
-  { capture: true },
-);
+// plot disables OrbitControls before calling this, so the drag doesn't also orbit.
+plot.onDirectionGrab = (theta, e) => {
+  drag = { theta, drawn: theta, frame: 0 };
+  canvas.setPointerCapture(e.pointerId);
+  canvas.style.cursor = 'grabbing';
+  showTangentInfo(plot.setGeodesic(theta));
+};
 canvas.addEventListener('pointerdown', (e) => (pointerDown = { x: e.clientX, y: e.clientY }));
 canvas.addEventListener('pointerup', (e) => {
   const down = pointerDown;
@@ -250,7 +243,10 @@ canvas.addEventListener('pointerup', (e) => {
   const p = plot.pick(e.clientX, e.clientY);
   showTangentInfo(plot.setTangent(p && { x: p.x, y: p.y }));
 });
-canvas.addEventListener('pointercancel', () => drag && endDrag());
+canvas.addEventListener('pointercancel', () => {
+  pointerDown = null;
+  if (drag) endDrag();
+});
 $('clearTangent').addEventListener('click', () => showTangentInfo(plot.setTangent(null)));
 
 function moveDrag(e) {
@@ -259,13 +255,14 @@ function moveDrag(e) {
   drag.theta = theta;
   drag.frame ||= requestAnimationFrame(() => {
     drag.frame = 0;
+    drag.drawn = drag.theta;
     showTangentInfo(plot.setGeodesic(drag.theta));
   });
 }
 
 function endDrag() {
   cancelAnimationFrame(drag.frame);
-  if (drag.theta != null) showTangentInfo(plot.setGeodesic(drag.theta));
+  if (drag.theta !== drag.drawn) showTangentInfo(plot.setGeodesic(drag.theta));
   drag = null;
   plot.controls.enabled = true;
   canvas.style.cursor = '';

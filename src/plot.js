@@ -40,6 +40,16 @@ export class SurfacePlot {
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
     this.camera.up.set(0, 0, 1);
 
+    // Registered before OrbitControls' own listener, so a press on the tangent
+    // plane's unit circle can switch the controls off before they start an orbit.
+    // onDirectionGrab(theta, event) lets main.js run the drag; it re-enables the controls.
+    this.onDirectionGrab = null;
+    this.renderer.domElement.addEventListener('pointerdown', (e) => {
+      const theta = this.pickDirection(e.clientX, e.clientY);
+      if (theta == null || !this.onDirectionGrab) return;
+      this.controls.enabled = false;
+      this.onDirectionGrab(theta, e);
+    });
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
 
@@ -55,11 +65,7 @@ export class SurfacePlot {
     this.slices = {};
     for (const axis of SLICE_AXES) {
       const group = new THREE.Group();
-      const marker = new THREE.Mesh(
-        new THREE.SphereGeometry(1, 16, 12),
-        new THREE.MeshBasicMaterial({ depthTest: false }),
-      );
-      marker.renderOrder = 3;
+      const marker = makeDot(1, 0xffffff);
       marker.visible = false;
       this.scene.add(group, marker);
       // value: the fixed coordinate, or null when hidden.
@@ -70,11 +76,12 @@ export class SurfacePlot {
     // on the unit circle (from tangentBasis) of the geodesic's initial velocity, or null.
     // data: { x, y, z, fx, fy, velocity } while shown, else null; velocity is the
     // geodesic's unit initial velocity { x, y, z }, or null.
-    // ring: the unit circle's points in world space, for picking; plane: the
-    // tangent plane in world space and axes: the 3D unit vectors at θ = 0 and
-    // θ = π/2 in math space, for turning a dragged pointer into an angle.
-    this.tangent = { point: null, direction: null, data: null, ring: null, plane: null, axes: null, group: new THREE.Group() };
-    this.scene.add(this.tangent.group);
+    // frame: { ring, plane, axes } while shown, else null: the unit circle's points
+    // and the tangent plane in world space, for picking, and the 3D unit vectors at
+    // θ = 0 and θ = π/2 in math space. The geodesic and its initial vector live in
+    // their own group, so turning the vector doesn't rebuild the plane.
+    this.tangent = { point: null, direction: null, data: null, frame: null, group: new THREE.Group(), geodesic: new THREE.Group() };
+    this.scene.add(this.tangent.group, this.tangent.geodesic);
 
     this.material = new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -300,15 +307,8 @@ export class SurfacePlot {
     slice.marker.material.color.copy(color);
     slice.marker.scale.setScalar(width * 0.012);
 
-    // Segments only between consecutive finite samples, so the curve breaks where f is undefined.
-    const verts = [];
-    let prev = null;
-    for (let i = 0; i <= SLICE_SAMPLES; i++) {
-      const z = sample.zs[i];
-      const p = Number.isNaN(z) ? null : point(sample.ts[i], z);
-      if (p && prev) verts.push(prev.x, prev.y, prev.z, p.x, p.y, p.z);
-      prev = p;
-    }
+    // NaN samples become gaps, so the curve breaks where f is undefined.
+    const verts = segmentsOf(Array.from(sample.zs, (z, i) => (Number.isNaN(z) ? null : point(sample.ts[i], z))));
     if (verts.length) slice.group.add(...seeThroughLines(verts, color, 3));
 
     const size = width * 0.045;
@@ -340,21 +340,24 @@ export class SurfacePlot {
   /** Draws the geodesic whose initial velocity is the unit-circle point at angle theta. */
   setGeodesic(theta) {
     this.tangent.direction = theta;
-    this.renderTangent();
+    this.renderGeodesic();
     return this.tangent.data;
   }
 
   // A square patch of the plane z = z0 + fx (x - x0) + fy (y - y0) around the
   // point, clipped to the domain, with an outline, a dot at the point and the
-  // unit circle of tangent vectors. With a direction, also the unit vector and
-  // the geodesic it starts, traced both ways.
+  // unit circle of tangent vectors; then the geodesic, if a direction is set.
   renderTangent() {
     const tangent = this.tangent;
     disposeChildren(tangent.group);
     tangent.data = null;
-    tangent.ring = null;
-    tangent.plane = null;
-    tangent.axes = null;
+    tangent.frame = null;
+    this.renderTangentContents();
+    this.renderGeodesic();
+  }
+
+  renderTangentContents() {
+    const tangent = this.tangent;
     if (!tangent.point || !this.view) return;
     const { f, options } = this.view;
     const { xMin, xMax, yMin, yMax } = options;
@@ -362,8 +365,7 @@ export class SurfacePlot {
     if (x < xMin || x > xMax || y < yMin || y > yMax) return;
     const d = partials(f, x, y);
     if (!d) return;
-    const z = f(x, y);
-    const { fx, fy } = d;
+    const { z, fx, fy } = d;
     tangent.data = { x, y, z, fx, fy, velocity: null };
 
     // Shrink the patch on steep planes so it doesn't tower over the plot.
@@ -388,51 +390,50 @@ export class SurfacePlot {
       new THREE.BufferGeometry().setFromPoints(corners),
       new THREE.LineBasicMaterial({ color }),
     );
-    const marker = new THREE.Mesh(
-      new THREE.SphereGeometry(span * 0.012, 16, 12),
-      new THREE.MeshBasicMaterial({ color, depthTest: false }),
-    );
-    marker.renderOrder = 3;
-    marker.position.copy(this.toWorld(x, y, z));
-    tangent.group.add(patch, outline, marker);
+    tangent.group.add(patch, outline, makeDot(span * 0.012, color, this.toWorld(x, y, z)));
 
     // Unit circle: (x, y, z) + cos θ e1 + sin θ e2, with e1, e2 orthonormal in 3D.
     // It's a circle in math units, so with fitZ it shows as an ellipse.
-    const [e1, e2] = tangentBasis(fx, fy);
-    const unit = (theta) => {
-      const dx = Math.cos(theta) * e1.dx + Math.sin(theta) * e2.dx;
-      const dy = Math.cos(theta) * e1.dy + Math.sin(theta) * e2.dy;
-      return { x: dx, y: dy, z: fx * dx + fy * dy };
-    };
-    const tip = (v) => this.toWorld(x + v.x, y + v.y, z + v.z);
-    tangent.ring = [];
-    for (let i = 0; i <= CIRCLE_SEGMENTS; i++) tangent.ring.push(tip(unit((2 * Math.PI * i) / CIRCLE_SEGMENTS)));
-    tangent.group.add(...seeThroughLines(segmentsOf(tangent.ring), color, 2));
-    tangent.axes = [unit(0), unit(Math.PI / 2)];
-    tangent.plane = new THREE.Plane().setFromCoplanarPoints(this.toWorld(x, y, z), ...tangent.axes.map(tip));
+    const axes = tangentBasis(fx, fy).map(({ dx, dy }) => ({ x: dx, y: dy, z: fx * dx + fy * dy }));
+    const ring = [];
+    for (let i = 0; i <= CIRCLE_SEGMENTS; i++) ring.push(this.tangentTip(unitVector(axes, (2 * Math.PI * i) / CIRCLE_SEGMENTS)));
+    tangent.group.add(...seeThroughLines(segmentsOf(ring), color, 2));
+    const worldPlane = new THREE.Plane().setFromCoplanarPoints(this.toWorld(x, y, z), ...axes.map((a) => this.tangentTip(a)));
+    tangent.frame = { ring, plane: worldPlane, axes };
+  }
 
+  // World position of the tangent vector v (math units) attached at the tangent point.
+  tangentTip(v) {
+    const { x, y, z } = this.tangent.data;
+    return this.toWorld(x + v.x, y + v.y, z + v.z);
+  }
+
+  // The unit vector at the current direction, and the geodesic it starts, traced both ways.
+  renderGeodesic() {
+    const tangent = this.tangent;
+    disposeChildren(tangent.geodesic);
+    if (!tangent.frame) return;
+    tangent.data.velocity = null;
     if (tangent.direction == null) return;
-    const v = unit(tangent.direction);
+    const { f, options } = this.view;
+    const { xMin, xMax, yMin, yMax } = options;
+    const { x, y, z } = tangent.data;
+    const span = Math.max(xMax - xMin, yMax - yMin);
+    const v = unitVector(tangent.frame.axes, tangent.direction);
     tangent.data.velocity = v;
     const opts = { xMin, xMax, yMin, yMax, step: span / GEODESIC_RESOLUTION, maxSteps: GEODESIC_STEPS };
     const forward = geodesic(f, x, y, v.x, v.y, opts);
     const backward = geodesic(f, x, y, -v.x, -v.y, opts);
     const path = [...backward.reverse(), ...forward.slice(1)].map((p) => this.toWorld(p.x, p.y, p.z));
     const geoColor = new THREE.Color(this.theme?.geodesic ?? '#1d1d1f');
-    if (path.length > 1) tangent.group.add(...seeThroughLines(segmentsOf(path), geoColor, 3));
+    if (path.length > 1) tangent.geodesic.add(...seeThroughLines(segmentsOf(path), geoColor, 3));
     const vectorColor = new THREE.Color(this.theme?.tangentVector ?? '#d11a1a');
     const arrow = new LineSegments2(
-      new LineSegmentsGeometry().setPositions(segmentsOf([this.toWorld(x, y, z), tip(v)])),
+      new LineSegmentsGeometry().setPositions(segmentsOf([this.toWorld(x, y, z), this.tangentTip(v)])),
       new LineMaterial({ color: vectorColor, linewidth: 4, depthTest: false }),
     );
     arrow.renderOrder = 3;
-    const head = new THREE.Mesh(
-      new THREE.SphereGeometry(span * 0.01, 16, 12),
-      new THREE.MeshBasicMaterial({ color: vectorColor, depthTest: false }),
-    );
-    head.renderOrder = 3;
-    head.position.copy(tip(v));
-    tangent.group.add(arrow, head);
+    tangent.geodesic.add(arrow, makeDot(span * 0.01, vectorColor, this.tangentTip(v)));
   }
 
   /**
@@ -441,17 +442,17 @@ export class SurfacePlot {
    * ray misses it. Unlike pickDirection, the pointer needn't be near the circle.
    */
   directionAt(clientX, clientY) {
-    const { plane, axes, data } = this.tangent;
-    if (!plane) return null;
+    const { frame, data } = this.tangent;
+    if (!frame) return null;
     this.setPointer(clientX, clientY);
-    const hit = this.raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+    const hit = this.raycaster.ray.intersectPlane(frame.plane, new THREE.Vector3());
     if (!hit) return null;
     const p = this.fromWorld(hit);
     const dx = p.x - data.x;
     const dy = p.y - data.y;
-    const w = [dx, dy, data.fx * dx + data.fy * dy];
-    const dot = (a) => a.x * w[0] + a.y * w[1] + a.z * w[2];
-    return Math.atan2(dot(axes[1]), dot(axes[0]));
+    const dz = data.fx * dx + data.fy * dy;
+    const [a, b] = frame.axes;
+    return Math.atan2(b.x * dx + b.y * dy + b.z * dz, a.x * dx + a.y * dy + a.z * dz);
   }
 
   /**
@@ -459,13 +460,10 @@ export class SurfacePlot {
    * the given client coordinates, or null if none is within CIRCLE_PICK_PX.
    */
   pickDirection(clientX, clientY) {
-    const ring = this.tangent.ring;
-    if (!ring) return null;
+    const frame = this.tangent.frame;
+    if (!frame) return null;
     const rect = this.renderer.domElement.getBoundingClientRect();
-    const screen = ring.map((p) => {
-      const s = p.clone().project(this.camera);
-      return s.z > 1 ? null : { x: rect.left + ((s.x + 1) / 2) * rect.width, y: rect.top + ((1 - s.y) / 2) * rect.height };
-    });
+    const screen = frame.ring.map((p) => this.toScreen(p, rect));
     let best = null;
     let bestDist = CIRCLE_PICK_PX;
     for (let i = 0; i < CIRCLE_SEGMENTS; i++) {
@@ -517,11 +515,17 @@ export class SurfacePlot {
     return hit ? this.fromWorld(hit.point) : null;
   }
 
-  // Aims the raycaster through the given client coordinates.
+  // Aims the raycaster through the given client coordinates. toScreen is the
+  // inverse: client coordinates of a world point, or null if it's behind the camera.
   setPointer(clientX, clientY) {
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.pointer.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
     this.raycaster.setFromCamera(this.pointer, this.camera);
+  }
+
+  toScreen(p, rect = this.renderer.domElement.getBoundingClientRect()) {
+    const s = p.clone().project(this.camera);
+    return s.z > 1 ? null : { x: rect.left + ((s.x + 1) / 2) * rect.width, y: rect.top + ((1 - s.y) / 2) * rect.height };
   }
 }
 
@@ -537,15 +541,34 @@ function disposeChildren(group, keep) {
   }
 }
 
-// Flat [x, y, z, ...] segment list for a polyline of Vector3 points.
+// Flat [x, y, z, ...] segment list for a polyline of Vector3 points; a null
+// point leaves a gap.
 function segmentsOf(points) {
   const verts = [];
   for (let i = 1; i < points.length; i++) {
     const a = points[i - 1];
     const b = points[i];
-    verts.push(a.x, a.y, a.z, b.x, b.y, b.z);
+    if (a && b) verts.push(a.x, a.y, a.z, b.x, b.y, b.z);
   }
   return verts;
+}
+
+// cos θ · axes[0] + sin θ · axes[1].
+function unitVector([a, b], theta) {
+  const c = Math.cos(theta);
+  const s = Math.sin(theta);
+  return { x: c * a.x + s * b.x, y: c * a.y + s * b.y, z: c * a.z + s * b.z };
+}
+
+// A dot drawn on top of everything, e.g. to mark a point on the surface.
+function makeDot(radius, color, position) {
+  const dot = new THREE.Mesh(
+    new THREE.SphereGeometry(radius, 16, 12),
+    new THREE.MeshBasicMaterial({ color, depthTest: false }),
+  );
+  dot.renderOrder = 3;
+  if (position) dot.position.copy(position);
+  return dot;
 }
 
 // A fat line drawn twice: faintly on top of everything so parts behind the
