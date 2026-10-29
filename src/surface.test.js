@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { compileFunction } from './expression.js';
-import { sampleSurface, sampleSlice, gridIndices, partials, tangentBasis, geodesic } from './surface.js';
+import { sampleSurface, sampleSlice, gridIndices, partials, tangentBasis, geodesic, geodesicAcceleration } from './surface.js';
 import { niceTicks } from './format.js';
 
 describe('compileFunction', () => {
@@ -126,6 +126,29 @@ describe('geodesic', () => {
   it('stops at the edge of the domain', () => {
     const points = geodesic(() => 0, 2.9, 0, 1, 0, box);
     expect(points).toHaveLength(11);
+  });
+});
+
+describe('geodesicAcceleration', () => {
+  it('points to the center of a sphere with length 1/R', () => {
+    const f = (x, y) => Math.sqrt(4 - x * x - y * y);
+    const a = geodesicAcceleration(f, 0, 0, 0.6, 0.8);
+    expect(a.x).toBeCloseTo(0, 6);
+    expect(a.y).toBeCloseTo(0, 6);
+    expect(a.z).toBeCloseTo(-0.5, 4);
+  });
+
+  it('is normal to the surface', () => {
+    const f = (x, y) => x * x - y * y;
+    const a = geodesicAcceleration(f, 0.5, 0.3, 0.4, -0.2);
+    // Tangent vectors (1, 0, fx) and (0, 1, fy) with fx = 1, fy = -0.6.
+    expect(a.x + a.z * 1).toBeCloseTo(0, 6);
+    expect(a.y + a.z * -0.6).toBeCloseTo(0, 6);
+  });
+
+  it('is zero on a plane', () => {
+    const a = geodesicAcceleration((x, y) => 2 * x - y, 1, 1, 0.3, 0.4);
+    expect(Math.hypot(a.x, a.y, a.z)).toBeCloseTo(0, 4);
   });
 });
 

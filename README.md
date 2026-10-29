@@ -22,6 +22,9 @@ geometry: tangent planes, unit tangent vectors and the geodesics they start.
 - **Geodesics**: the tangent plane shows the unit circle of tangent vectors.
   Click or drag on it to choose a unit initial velocity (shown in red), and the
   geodesic through the point is traced in both directions, live while you drag.
+  Click the geodesic to see its acceleration vector there (in green): it is
+  normal to the surface, and its length is the normal curvature. It is drawn
+  at 10× its length so it stays visible.
 - **Shareable URLs**: the expression, domain and settings are kept in the URL
   hash, so a link reproduces the plot.
 - Light and dark themes, and a collapsible panel on small screens.
@@ -66,3 +69,7 @@ undefined. The unit circle is measured in the surface's own units, so with
 Live version: https://bleiglanz.github.io/functionplotter/ (deployed from `master` by GitHub Actions on every push).
 
 See [AGENTS.md](AGENTS.md) for a detailed architecture guide.
+
+## License
+
+[MIT](LICENSE)

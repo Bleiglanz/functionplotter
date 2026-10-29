@@ -13,6 +13,7 @@
   --tangent: #3355dd;
   --geodesic: #1d1d1f;
   --tangent-vector: #d11a1a;
+  --acceleration: #2e9d3a;
   color-scheme: light;
 }
 
@@ -32,6 +33,7 @@
     --tangent: #9db0ff;
     --geodesic: #f4f4f2;
     --tangent-vector: #ff5a52;
+    --acceleration: #5fd36a;
     color-scheme: dark;
   }
 }
@@ -279,12 +281,15 @@ button:hover {
   overflow-wrap: anywhere;
 }
 
-#geodesicInfo {
+#geodesicInfo,
+#accelInfo {
   margin: 4px 0 0;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
-#geodesicInfo::before {
+#geodesicInfo::before,
+#accelInfo::before {
   content: '';
   display: inline-block;
   width: 10px;
@@ -292,6 +297,10 @@ button:hover {
   margin-right: 6px;
   vertical-align: middle;
   background: var(--geodesic);
+}
+
+#accelInfo::before {
+  background: var(--acceleration);
 }
 
 #readout {

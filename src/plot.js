@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
-import { sampleSurface, sampleSlice, gridIndices, partials, tangentBasis, geodesic } from './surface.js';
+import { sampleSurface, sampleSlice, gridIndices, partials, tangentBasis, geodesic, geodesicAcceleration } from './surface.js';
 import { formatNumber as fmt } from './format.js';
 import { viridis } from './colormap.js';
 
@@ -20,8 +20,10 @@ const CIRCLE_SEGMENTS = 128;
 // GEODESIC_STEPS steps each way (so up to 4 spans long in each direction).
 const GEODESIC_RESOLUTION = 400;
 const GEODESIC_STEPS = 1600;
-// How close (in CSS px) a click must be to the unit circle to pick a direction.
-const CIRCLE_PICK_PX = 10;
+// How close (in CSS px) a click must be to the unit circle or the geodesic to pick it.
+const PICK_PX = 10;
+// The acceleration vector is drawn this many times its true length, so it stays visible.
+export const ACCEL_DRAW_SCALE = 10;
 
 /**
  * Owns the three.js scene. Math coordinates (x, y, z = f(x, y)) are mapped to
@@ -80,8 +82,23 @@ export class SurfacePlot {
     // and the tangent plane in world space, for picking, and the 3D unit vectors at
     // θ = 0 and θ = π/2 in math space. The geodesic and its initial vector live in
     // their own group, so turning the vector doesn't rebuild the plane.
-    this.tangent = { point: null, direction: null, data: null, frame: null, group: new THREE.Group(), geodesic: new THREE.Group() };
-    this.scene.add(this.tangent.group, this.tangent.geodesic);
+    // path: { points, world, origin } while a geodesic is shown: its math points
+    // ({ x, y, z, vx, vy }), their world positions, and the index of the tangent point.
+    // accelStep: where the acceleration vector is shown, as a signed number of
+    // integration steps from the tangent point along the geodesic, or null. It has
+    // its own group too, so moving it doesn't retrace the geodesic.
+    this.tangent = {
+      point: null,
+      direction: null,
+      accelStep: null,
+      data: null,
+      frame: null,
+      path: null,
+      group: new THREE.Group(),
+      geodesic: new THREE.Group(),
+      acceleration: new THREE.Group(),
+    };
+    this.scene.add(this.tangent.group, this.tangent.geodesic, this.tangent.acceleration);
 
     this.material = new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -112,11 +129,12 @@ export class SurfacePlot {
   /**
    * sliceColors: { x, y } CSS colors of the two slices; tangent: color of the
    * tangent plane and its unit circle; geodesic: color of the geodesic;
-   * tangentVector: color of its initial unit velocity.
+   * tangentVector: color of its initial unit velocity; acceleration: color of
+   * the acceleration vector.
    */
-  setTheme({ background, frame, text, sliceColors, tangent, geodesic, tangentVector }) {
+  setTheme({ background, frame, text, sliceColors, tangent, geodesic, tangentVector, acceleration }) {
     this.scene.background = new THREE.Color(background);
-    this.theme = { frame, text, sliceColors, tangent, geodesic, tangentVector };
+    this.theme = { frame, text, sliceColors, tangent, geodesic, tangentVector, acceleration };
     if (this.last) this.plot(this.last.f, this.last.options);
   }
 
@@ -333,6 +351,7 @@ export class SurfacePlot {
   setTangent(point) {
     this.tangent.point = point;
     this.tangent.direction = null;
+    this.tangent.accelStep = null;
     this.renderTangent();
     return this.tangent.data;
   }
@@ -340,7 +359,15 @@ export class SurfacePlot {
   /** Draws the geodesic whose initial velocity is the unit-circle point at angle theta. */
   setGeodesic(theta) {
     this.tangent.direction = theta;
+    this.tangent.accelStep = null;
     this.renderGeodesic();
+    return this.tangent.data;
+  }
+
+  /** Shows the geodesic's acceleration `step` integration steps from the tangent point (signed), or hides it when null. */
+  setAcceleration(step) {
+    this.tangent.accelStep = step;
+    this.renderAcceleration();
     return this.tangent.data;
   }
 
@@ -408,10 +435,16 @@ export class SurfacePlot {
     return this.toWorld(x + v.x, y + v.y, z + v.z);
   }
 
-  // The unit vector at the current direction, and the geodesic it starts, traced both ways.
   renderGeodesic() {
+    this.traceGeodesic();
+    this.renderAcceleration();
+  }
+
+  // The unit vector at the current direction, and the geodesic it starts, traced both ways.
+  traceGeodesic() {
     const tangent = this.tangent;
     disposeChildren(tangent.geodesic);
+    tangent.path = null;
     if (!tangent.frame) return;
     tangent.data.velocity = null;
     if (tangent.direction == null) return;
@@ -424,9 +457,11 @@ export class SurfacePlot {
     const opts = { xMin, xMax, yMin, yMax, step: span / GEODESIC_RESOLUTION, maxSteps: GEODESIC_STEPS };
     const forward = geodesic(f, x, y, v.x, v.y, opts);
     const backward = geodesic(f, x, y, -v.x, -v.y, opts);
-    const path = [...backward.reverse(), ...forward.slice(1)].map((p) => this.toWorld(p.x, p.y, p.z));
+    const points = [...backward.reverse(), ...forward.slice(1)];
+    const world = points.map((p) => this.toWorld(p.x, p.y, p.z));
+    tangent.path = { points, world, origin: backward.length - 1 };
     const geoColor = new THREE.Color(this.theme?.geodesic ?? '#1d1d1f');
-    if (path.length > 1) tangent.geodesic.add(...seeThroughLines(segmentsOf(path), geoColor, 3));
+    if (world.length > 1) tangent.geodesic.add(...seeThroughLines(segmentsOf(world), geoColor, 3));
     const vectorColor = new THREE.Color(this.theme?.tangentVector ?? '#d11a1a');
     const arrow = new LineSegments2(
       new LineSegmentsGeometry().setPositions(segmentsOf([this.toWorld(x, y, z), this.tangentTip(v)])),
@@ -434,6 +469,31 @@ export class SurfacePlot {
     );
     arrow.renderOrder = 3;
     tangent.geodesic.add(arrow, makeDot(span * 0.01, vectorColor, this.tangentTip(v)));
+  }
+
+  // The acceleration vector γ'' at accelStep along the geodesic, drawn from a dot
+  // at that point at ACCEL_DRAW_SCALE times its length in math units.
+  renderAcceleration() {
+    const tangent = this.tangent;
+    disposeChildren(tangent.acceleration);
+    if (tangent.data) tangent.data.acceleration = null;
+    const path = tangent.path;
+    const i = path && tangent.accelStep != null ? path.origin + tangent.accelStep : -1;
+    if (!path || i < 0 || i >= path.points.length) return;
+    const p = path.points[i];
+    const a = geodesicAcceleration(this.view.f, p.x, p.y, p.vx, p.vy);
+    tangent.data.acceleration = { point: { x: p.x, y: p.y, z: p.z }, vector: a };
+    const { xMin, xMax, yMin, yMax } = this.view.options;
+    const span = Math.max(xMax - xMin, yMax - yMin);
+    const color = new THREE.Color(this.theme?.acceleration ?? '#2e9d3a');
+    const k = ACCEL_DRAW_SCALE;
+    const tip = this.toWorld(p.x + k * a.x, p.y + k * a.y, p.z + k * a.z);
+    const arrow = new LineSegments2(
+      new LineSegmentsGeometry().setPositions(segmentsOf([path.world[i], tip])),
+      new LineMaterial({ color, linewidth: 4, depthTest: false }),
+    );
+    arrow.renderOrder = 3;
+    tangent.acceleration.add(arrow, makeDot(span * 0.01, color, path.world[i]), makeDot(span * 0.008, color, tip));
   }
 
   /**
@@ -457,16 +517,36 @@ export class SurfacePlot {
 
   /**
    * Returns the angle θ of the point on the tangent plane's unit circle nearest
-   * the given client coordinates, or null if none is within CIRCLE_PICK_PX.
+   * the given client coordinates, or null if none is within PICK_PX.
    */
   pickDirection(clientX, clientY) {
     const frame = this.tangent.frame;
     if (!frame) return null;
+    const hit = this.nearestOnScreen(frame.ring, clientX, clientY);
+    return hit && (2 * Math.PI * (hit.i + hit.t)) / CIRCLE_SEGMENTS;
+  }
+
+  /**
+   * Returns the geodesic sample nearest the given client coordinates as a signed
+   * step count from the tangent point (for setAcceleration), or null if none is
+   * within PICK_PX.
+   */
+  pickGeodesic(clientX, clientY) {
+    const path = this.tangent.path;
+    if (!path) return null;
+    const hit = this.nearestOnScreen(path.world, clientX, clientY);
+    return hit && hit.i + Math.round(hit.t) - path.origin;
+  }
+
+  // Nearest point to the client coordinates on the screen projection of a world
+  // polyline, as { i, t } (segment i, fraction t along it), or null if none is
+  // within PICK_PX.
+  nearestOnScreen(points, clientX, clientY) {
     const rect = this.renderer.domElement.getBoundingClientRect();
-    const screen = frame.ring.map((p) => this.toScreen(p, rect));
+    const screen = points.map((p) => this.toScreen(p, rect));
     let best = null;
-    let bestDist = CIRCLE_PICK_PX;
-    for (let i = 0; i < CIRCLE_SEGMENTS; i++) {
+    let bestDist = PICK_PX;
+    for (let i = 0; i + 1 < screen.length; i++) {
       const a = screen[i];
       const b = screen[i + 1];
       if (!a || !b) continue;
@@ -477,7 +557,7 @@ export class SurfacePlot {
       const dist = Math.hypot(clientX - a.x - t * ex, clientY - a.y - t * ey);
       if (dist < bestDist) {
         bestDist = dist;
-        best = (2 * Math.PI * (i + t)) / CIRCLE_SEGMENTS;
+        best = { i, t };
       }
     }
     return best;

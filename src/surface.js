@@ -126,31 +126,50 @@ export function tangentBasis(fx, fy) {
 }
 
 /**
+ * For a velocity (u, v) in the xy-plane at (px, py): the gradient (fx, fy) and
+ * K = (fxx u² + 2 fxy uv + fyy v²) / (1 + fx² + fy²), with derivatives by central
+ * differences of the NaN-safe `at`. K is the second fundamental form over W².
+ */
+function curvatureTerm(at, px, py, u, v) {
+  const h = 1e-4 * Math.max(1, Math.abs(px), Math.abs(py));
+  const z = at(px, py);
+  const zxp = at(px + h, py);
+  const zxm = at(px - h, py);
+  const zyp = at(px, py + h);
+  const zym = at(px, py - h);
+  const fx = (zxp - zxm) / (2 * h);
+  const fy = (zyp - zym) / (2 * h);
+  const fxx = (zxp - 2 * z + zxm) / (h * h);
+  const fyy = (zyp - 2 * z + zym) / (h * h);
+  // Seven-point stencil, reusing the axis samples: two more evals instead of four.
+  const fxy = (at(px + h, py + h) + at(px - h, py - h) - zxp - zxm - zyp - zym + 2 * z) / (2 * h * h);
+  return { fx, fy, k: (fxx * u * u + 2 * fxy * u * v + fyy * v * v) / (1 + fx * fx + fy * fy) };
+}
+
+/**
+ * 3D acceleration of the geodesic through (x, y) with xy-velocity (vx, vy):
+ * K (-fx, -fy, 1), normal to the surface. For a unit-speed geodesic its length
+ * is the normal curvature in that direction. Returns { x, y, z }.
+ */
+export function geodesicAcceleration(f, x, y, vx, vy) {
+  const { fx, fy, k } = curvatureTerm(safe(f), x, y, vx, vy);
+  return { x: -fx * k, y: -fy * k, z: k };
+}
+
+/**
  * Traces the geodesic of the graph z = f(x, y) from (x, y) with initial
  * velocity (vx, vy) in the xy-plane (the 3D velocity being (vx, vy, fx vx + fy vy)).
  * In graph coordinates the geodesic equations reduce to
  *   x'' = -fx K,  y'' = -fy K,  K = (fxx x'² + 2 fxy x'y' + fyy y'²) / (1 + fx² + fy²),
  * integrated with RK4 at a fixed parameter step. Derivatives are taken by
  * central differences. Stops on leaving the domain, where f or its derivatives
- * are not finite, or after maxSteps. Returns the points [{ x, y, z }, ...],
- * starting at (x, y).
+ * are not finite, or after maxSteps. Returns the points [{ x, y, z, vx, vy }, ...],
+ * starting at (x, y), with the xy-velocity at each.
  */
 export function geodesic(f, x, y, vx, vy, { xMin, xMax, yMin, yMax, step, maxSteps }) {
   const at = safe(f);
   const accel = (px, py, u, v) => {
-    const h = 1e-4 * Math.max(1, Math.abs(px), Math.abs(py));
-    const z = at(px, py);
-    const zxp = at(px + h, py);
-    const zxm = at(px - h, py);
-    const zyp = at(px, py + h);
-    const zym = at(px, py - h);
-    const fx = (zxp - zxm) / (2 * h);
-    const fy = (zyp - zym) / (2 * h);
-    const fxx = (zxp - 2 * z + zxm) / (h * h);
-    const fyy = (zyp - 2 * z + zym) / (h * h);
-    // Seven-point stencil, reusing the axis samples: two more evals instead of four.
-    const fxy = (at(px + h, py + h) + at(px - h, py - h) - zxp - zxm - zyp - zym + 2 * z) / (2 * h * h);
-    const k = (fxx * u * u + 2 * fxy * u * v + fyy * v * v) / (1 + fx * fx + fy * fy);
+    const { fx, fy, k } = curvatureTerm(at, px, py, u, v);
     return [-fx * k, -fy * k];
   };
   const inside = (px, py) => px >= xMin && px <= xMax && py >= yMin && py <= yMax;
@@ -162,7 +181,7 @@ export function geodesic(f, x, y, vx, vy, { xMin, xMax, yMin, yMax, step, maxSte
   for (let i = 0; i <= maxSteps; i++) {
     const z = at(s[0], s[1]);
     if (!inside(s[0], s[1]) || !Number.isFinite(z)) break;
-    points.push({ x: s[0], y: s[1], z });
+    points.push({ x: s[0], y: s[1], z, vx: s[2], vy: s[3] });
     const k1 = deriv(s);
     const k2 = deriv(plus(s, k1, step / 2));
     const k3 = deriv(plus(s, k2, step / 2));

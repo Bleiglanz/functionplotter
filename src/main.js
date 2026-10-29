@@ -1,5 +1,5 @@
 import { compileFunction } from './expression.js';
-import { SurfacePlot } from './plot.js';
+import { SurfacePlot, ACCEL_DRAW_SCALE } from './plot.js';
 import { SliceChart } from './sliceChart.js';
 import { formatNumber as fmt } from './format.js';
 
@@ -214,11 +214,22 @@ function showTangentInfo(t) {
   $('geodesicInfo').textContent = v
     ? `Geodesic with γ′(0) = (${fmt(v.x)}, ${fmt(v.y)}, ${fmt(v.z)})`
     : 'Click or drag the unit circle to trace a geodesic.';
+  const accel = $('accelInfo');
+  accel.hidden = !v;
+  const a = t.acceleration;
+  if (!a) accel.textContent = 'Click the geodesic to show its acceleration.';
+  else {
+    const { point: p, vector: g } = a;
+    accel.textContent =
+      `γ″ at (${fmt(p.x)}, ${fmt(p.y)}, ${fmt(p.z)}) = (${fmt(g.x)}, ${fmt(g.y)}, ${fmt(g.z)}), ` +
+      `|γ″| = ${fmt(Math.hypot(g.x, g.y, g.z))} (drawn ${ACCEL_DRAW_SCALE}×)`;
+  }
 }
 
 // Pressing on the tangent plane's unit circle traces the geodesic in that direction,
-// and dragging turns it live; clicking the surface elsewhere shows the tangent plane
-// there; clicking the background clears it. A pointer that moved more than a few
+// and dragging turns it live; clicking the geodesic shows its acceleration there;
+// clicking the surface elsewhere shows the tangent plane there; clicking the
+// background clears it. A pointer that moved more than a few
 // pixels was an orbit drag, not a click.
 const canvas = plot.renderer.domElement;
 let pointerDown = null;
@@ -240,6 +251,8 @@ canvas.addEventListener('pointerup', (e) => {
   pointerDown = null;
   if (drag) return endDrag();
   if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4) return;
+  const step = plot.pickGeodesic(e.clientX, e.clientY);
+  if (step != null) return showTangentInfo(plot.setAcceleration(step));
   const p = plot.pick(e.clientX, e.clientY);
   showTangentInfo(plot.setTangent(p && { x: p.x, y: p.y }));
 });
@@ -333,7 +346,8 @@ panelToggle.addEventListener('click', () => {
 
 canvas.addEventListener('pointermove', (e) => {
   if (drag) return moveDrag(e);
-  canvas.style.cursor = plot.pickDirection(e.clientX, e.clientY) == null ? '' : 'grab';
+  if (plot.pickDirection(e.clientX, e.clientY) != null) canvas.style.cursor = 'grab';
+  else canvas.style.cursor = plot.pickGeodesic(e.clientX, e.clientY) == null ? '' : 'pointer';
   const p = plot.pick(e.clientX, e.clientY);
   readout.hidden = !p;
   if (p) readout.textContent = `x ${fmt(p.x)}  y ${fmt(p.y)}  f ${fmt(p.z)}`;
@@ -353,6 +367,7 @@ function applyTheme() {
     tangent: css.getPropertyValue('--tangent').trim(),
     geodesic: css.getPropertyValue('--geodesic').trim(),
     tangentVector: css.getPropertyValue('--tangent-vector').trim(),
+    acceleration: css.getPropertyValue('--acceleration').trim(),
   });
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
