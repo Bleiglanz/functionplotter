@@ -1,0 +1,332 @@
+@import './theme.css';
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px 8px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+a {
+  color: var(--accent);
+}
+
+main {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-areas:
+    'controls chart'
+    'controls facts';
+  align-items: start;
+  gap: 16px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 24px 32px;
+}
+
+#controls,
+#chart,
+#facts {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+#controls {
+  grid-area: controls;
+  display: grid;
+  gap: 16px;
+}
+
+#chart {
+  grid-area: chart;
+  margin: 0;
+}
+
+#facts {
+  grid-area: facts;
+}
+
+/* --- Controls --------------------------------------------------------------- */
+
+input,
+button {
+  font: inherit;
+  color: var(--text);
+  background: var(--input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  min-width: 0;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+input[type='range'] {
+  padding: 0;
+  accent-color: var(--accent);
+  border: 0;
+  background: none;
+}
+
+input[type='checkbox'] {
+  accent-color: var(--accent);
+  vertical-align: -2px;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.param {
+  display: grid;
+  grid-template-columns: 20px 1fr 76px;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.param label {
+  font: italic 600 17px/1 Georgia, 'Times New Roman', serif;
+}
+
+/* A negative parameter: slider and letter switch to --negative. */
+.param.negative input[type='range'] {
+  accent-color: var(--negative);
+}
+
+.param.negative label {
+  color: var(--negative);
+}
+
+.param .hint {
+  grid-column: 2 / -1;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.view {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.range {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 6px;
+}
+
+.range legend {
+  padding: 0;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.range span {
+  color: var(--muted);
+}
+
+.check {
+  font-size: 13px;
+}
+
+/* --- Chart ------------------------------------------------------------------ */
+
+#chart figcaption {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 8px;
+}
+
+#formula {
+  font: italic 17px Georgia, 'Times New Roman', serif;
+}
+
+#hover {
+  color: var(--muted);
+  font: 12px ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+}
+
+#chart svg {
+  display: block;
+  width: 100%;
+  height: min(60vh, 520px);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  touch-action: none;
+}
+
+#chart svg:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.grid line {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.grid line.zero {
+  stroke: var(--frame);
+  stroke-width: 1.5;
+}
+
+.tick-labels text {
+  fill: var(--muted);
+}
+
+.curve,
+.reference,
+.tangent,
+.asymptote {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.curve {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.reference {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.asymptote {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 4;
+}
+
+.intercept {
+  fill: var(--text);
+}
+
+.asymptote-label {
+  fill: var(--accent);
+  font-size: 12px;
+}
+
+.point-label {
+  fill: var(--text);
+  font-size: 12px;
+}
+
+.tangent {
+  stroke: var(--tangent);
+  stroke-width: 1.5;
+}
+
+.subtangent {
+  stroke: var(--tangent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  opacity: 0.5;
+}
+
+.foot {
+  fill: var(--tangent);
+}
+
+.dot {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+/* --- Properties ------------------------------------------------------------- */
+
+#facts dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+#facts dt {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#facts dd {
+  margin: 0;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  header {
+    padding: 16px 16px 4px;
+  }
+  main {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'chart' 'controls' 'facts';
+    padding: 8px 16px 24px;
+  }
+  #chart svg {
+    height: 50vh;
+  }
+  #facts dl {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  #facts dd {
+    margin-bottom: 8px;
+  }
+  #facts dt {
+    white-space: normal;
+  }
+}

@@ -25,6 +25,11 @@ geometry: tangent planes, unit tangent vectors and the geodesics they start.
   Click the geodesic to see its acceleration vector there (in green): it is
   normal to the surface, and its length is the normal curvature. It is drawn
   at 10× its length so it stays visible.
+- **Exponential functions page** (`exponential.html`): sliders for a, b, c and d in
+  f(x) = a·e<sup>bx+c</sup> + d (a slider turns orange while its value is negative),
+  a chart whose hover shows the tangent (it always meets the asymptote y = d 1/b
+  away), and the properties that follow: y-intercept, growth or decay with doubling
+  time / half-life, asymptote, range, zeros, convexity and inverse.
 - **Shareable URLs**: the expression, domain and settings are kept in the URL
   hash, so a link reproduces the plot.
 - Light and dark themes, and a collapsible panel on small screens.

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exponential Functions</title>
+    <link rel="stylesheet" href="/src/exponential.css" />
+  </head>
+  <body>
+    <header>
+      <h1>f(x) = a · e<sup>bx + c</sup> + d</h1>
+      <a href="./index.html">Surface plotter →</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <fieldset class="param" data-param="a">
+          <label for="a">a</label>
+          <input id="aSlider" type="range" min="-5" max="5" step="0.01" aria-label="a slider" />
+          <input id="a" type="number" step="any" />
+          <span class="hint">vertical stretch; the sign flips the curve</span>
+        </fieldset>
+        <fieldset class="param" data-param="b">
+          <label for="b">b</label>
+          <input id="bSlider" type="range" min="-3" max="3" step="0.01" aria-label="b slider" />
+          <input id="b" type="number" step="any" />
+          <span class="hint">growth rate: growth if b &gt; 0, decay if b &lt; 0</span>
+        </fieldset>
+        <fieldset class="param" data-param="c">
+          <label for="c">c</label>
+          <input id="cSlider" type="range" min="-3" max="3" step="0.01" aria-label="c slider" />
+          <input id="c" type="number" step="any" />
+          <span class="hint">horizontal shift: the same as scaling by e<sup>c</sup></span>
+        </fieldset>
+        <fieldset class="param" data-param="d">
+          <label for="d">d</label>
+          <input id="dSlider" type="range" min="-5" max="5" step="0.01" aria-label="d slider" />
+          <input id="d" type="number" step="any" />
+          <span class="hint">vertical shift; the asymptote is y = d</span>
+        </fieldset>
+
+        <div class="view">
+          <fieldset class="range">
+            <legend>x</legend>
+            <input id="xMin" type="number" step="any" aria-label="x min" />
+            <span>to</span>
+            <input id="xMax" type="number" step="any" aria-label="x max" />
+          </fieldset>
+          <fieldset class="range">
+            <legend>y</legend>
+            <input id="yMin" type="number" step="any" aria-label="y min" />
+            <span>to</span>
+            <input id="yMax" type="number" step="any" aria-label="y max" />
+          </fieldset>
+          <label class="check"><input id="showRef" type="checkbox" /> Show e<sup>x</sup> for comparison</label>
+          <button id="reset" type="button">Reset</button>
+        </div>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>Properties</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/exponential.js"></script>
+  </body>
+</html>
