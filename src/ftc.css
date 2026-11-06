@@ -9,21 +9,9 @@ main {
     'controls facts';
 }
 
+/* Panel, caption and svg basics come from .chart-figure in page.css. */
 #antiChart {
   grid-area: anti;
-  margin: 0;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
-}
-
-#antiChart figcaption {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  margin-bottom: 8px;
 }
 
 #antiFormula {
@@ -37,21 +25,11 @@ main {
   white-space: pre;
 }
 
+/* Both charts share the x mapping, so they share a height; dragging sets b. */
 #chart svg,
 #antiChart svg {
-  display: block;
-  width: 100%;
   height: min(36vh, 320px);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
   cursor: ew-resize;
-  touch-action: none;
-}
-
-#antiChart svg:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 4px;
 }
 
 /* --- Controls --------------------------------------------------------------- */
