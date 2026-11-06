@@ -31,6 +31,10 @@ Every formula on every page is typeset with KaTeX (npm dependency, bundled by Vi
 
 To add a topic: create `<topic>.html` at the top level (`vite.config.js` picks up every top-level `*.html` as a build entry automatically), a `src/<topic>.js`, and a `src/<topic>.css` that starts with `@import './page.css';` for the shared 2D layout (header with a `.home` "← All topics" link, `#controls` panel, `#chart` figure, `#facts` list). Put pure math in its own DOM-free module with a `*.test.js`, keep state in the URL hash like the existing pages, and add a card to `index.html` and a line to the README.
 
+## Specs and reviews
+
+EGM artifact directory: ./specs
+
 ## Commands
 
 - `npm run dev`: Vite dev server
