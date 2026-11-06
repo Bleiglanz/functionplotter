@@ -1,6 +1,7 @@
 import { formatNumber as fmt, niceTicks } from './format.js';
 import { renderStatic, setTex, texNum as T, texSigned as S, texText } from './tex.js';
-import { svgTex } from './pageUtils.js';
+import { svgEl, svgTex, frame, axes, polyline, stateFromHash as readHash, writeHash } from './pageUtils.js';
+import * as M from './exponentialMath.js';
 
 // Page for discussing f(x) = a·e^(bx + c) + d: sliders for a, b, c, d, a chart with a
 // hover tangent, and a list of properties derived from the parameters.
@@ -9,7 +10,6 @@ const DEFAULTS = { a: 1, b: 1, c: 0, d: 0, xMin: -4, xMax: 4, yMin: -2, yMax: 8,
 const PARAMS = ['a', 'b', 'c', 'd'];
 const SAMPLES = 600;
 const MARGIN = { top: 12, right: 16, bottom: 26, left: 48 };
-const NS = 'http://www.w3.org/2000/svg';
 
 const $ = (id) => document.getElementById(id);
 const fields = Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, $(k)]));
@@ -17,14 +17,8 @@ const sliders = Object.fromEntries(PARAMS.map((p) => [p, $(`${p}Slider`)]));
 const svg = document.querySelector('#chart svg');
 const hoverOut = $('hover');
 
-const svgEl = (tag, attrs = {}, parent) => {
-  const el = document.createElementNS(NS, tag);
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-  parent?.appendChild(el);
-  return el;
-};
-
-// "−2" with a real minus sign; signed(v) gives "+ 2" / "− 2" for use after another term.
+// Plain-text numbers for the chart's aria-label: "−2" with a real minus sign;
+// signed(v) gives "+ 2" / "− 2" for use after another term.
 const num = (v) => fmt(v).replace('-', '−');
 const signed = (v) => `${v < 0 ? '−' : '+'} ${fmt(Math.abs(v))}`;
 
@@ -46,25 +40,6 @@ function writeForm(state) {
   for (const p of PARAMS) sliders[p].value = state[p];
 }
 
-function stateFromHash() {
-  const params = new URLSearchParams(location.hash.slice(1));
-  const state = { ...DEFAULTS };
-  for (const key of Object.keys(DEFAULTS)) {
-    if (!params.has(key)) continue;
-    const raw = params.get(key);
-    if (typeof DEFAULTS[key] === 'boolean') state[key] = raw === '1';
-    else state[key] = Number.isFinite(+raw) ? +raw : DEFAULTS[key];
-  }
-  return state;
-}
-
-function writeHash(state) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(state)) {
-    params.set(key, typeof value === 'boolean' ? (value ? '1' : '0') : String(value));
-  }
-  history.replaceState(null, '', '#' + params);
-}
 
 // --- Chart ------------------------------------------------------------------
 
@@ -75,45 +50,30 @@ let hoverX = null;
 function draw() {
   const state = readForm();
   const { a, b, c, d, xMin, xMax, yMin, yMax, showRef } = state;
-  const width = svg.clientWidth;
-  const height = svg.clientHeight;
-  svg.replaceChildren();
+  const box = frame(svg, MARGIN);
   view = null;
-  if (!width || !height || !PARAMS.every((p) => Number.isFinite(state[p])) || !(xMax > xMin) || !(yMax > yMin)) return;
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  if (!box || !PARAMS.every((p) => Number.isFinite(state[p])) || !(xMax > xMin) || !(yMax > yMin)) return;
 
-  const f = (x) => a * Math.exp(b * x + c) + d;
-  const plotW = width - MARGIN.left - MARGIN.right;
-  const plotH = height - MARGIN.top - MARGIN.bottom;
+  const p = { a, b, c, d };
+  const f = (x) => M.value(p, x);
+  const { height, plotW, plotH } = box;
   const sx = (x) => MARGIN.left + ((x - xMin) / (xMax - xMin)) * plotW;
   const sy = (y) => MARGIN.top + (1 - (y - yMin) / (yMax - yMin)) * plotH;
   // Huge values would make the path unreadably long; anything far off-chart is clipped anyway.
   const clampY = (px) => Math.max(-10 * height, Math.min(11 * height, px));
-  view = { f, a, b, d, xMin, xMax, yMin, yMax, sx, sy, clampY, plotW, plotH };
+  view = { p, f, a, b, d, xMin, xMax, yMin, yMax, sx, sy, clampY, plotW, plotH };
 
-  const clip = svgEl('clipPath', { id: 'plotArea' }, svgEl('defs', {}, svg));
-  svgEl('rect', { x: MARGIN.left, y: MARGIN.top, width: plotW, height: plotH }, clip);
+  const xTicks = niceTicks(xMin, xMax, 8).ticks.filter((t) => t >= xMin && t <= xMax);
+  axes(svg, box, xTicks.map((t) => [t, sx(t)]), yMin, yMax, sy);
 
-  const grid = svgEl('g', { class: 'grid' }, svg);
-  const labels = svgEl('g', { class: 'tick-labels' }, svg);
-  const inRange = (lo, hi) => (t) => t >= lo && t <= hi;
-  for (const t of niceTicks(yMin, yMax, 6).ticks.filter(inRange(yMin, yMax))) {
-    svgEl('line', { x1: MARGIN.left, x2: width - MARGIN.right, y1: sy(t), y2: sy(t), class: t === 0 ? 'zero' : '' }, grid);
-    svgEl('text', { x: MARGIN.left - 6, y: sy(t), 'text-anchor': 'end', 'dominant-baseline': 'middle' }, labels).textContent = fmt(t, 3);
-  }
-  for (const t of niceTicks(xMin, xMax, 8).ticks.filter(inRange(xMin, xMax))) {
-    svgEl('line', { x1: sx(t), x2: sx(t), y1: MARGIN.top, y2: MARGIN.top + plotH, class: t === 0 ? 'zero' : '' }, grid);
-    svgEl('text', { x: sx(t), y: height - 8, 'text-anchor': 'middle' }, labels).textContent = fmt(t, 3);
-  }
-
-  const plot = svgEl('g', { 'clip-path': 'url(#plotArea)' }, svg);
+  const plot = svgEl('g', { 'clip-path': box.clipUrl }, svg);
   const path = (g) => {
-    let d = '';
+    const points = [];
     for (let i = 0; i <= SAMPLES; i++) {
       const x = xMin + ((xMax - xMin) * i) / SAMPLES;
-      d += `${i ? 'L' : 'M'}${sx(x).toFixed(1)},${clampY(sy(g(x))).toFixed(1)}`;
+      points.push([sx(x), sy(g(x))]);
     }
-    return d;
+    return polyline(points, clampY);
   };
   // y = d is the horizontal asymptote whenever the curve isn't constant.
   const curved = a !== 0 && b !== 0;
@@ -130,8 +90,8 @@ function draw() {
   svgEl('path', { d: path(f), class: 'curve' }, plot);
 
   // The zero, where a·e^(bx + c) = −d, if there is one.
-  if (curved && -d / a > 0 && yMin <= 0 && yMax >= 0) {
-    const x0 = (Math.log(-d / a) - c) / b;
+  const x0 = M.zero(p);
+  if (x0 != null && yMin <= 0 && yMax >= 0) {
     if (x0 >= xMin && x0 <= xMax) {
       svgEl('circle', { cx: sx(x0), cy: sy(0), r: 4, class: 'intercept' }, plot);
       // Below-right of an increasing curve, above-right of a decreasing one, clear of the curve.
@@ -142,7 +102,7 @@ function draw() {
 
   // y-intercept f(0) = a·e^c + d.
   if (xMin <= 0 && xMax >= 0) {
-    const y0 = f(0);
+    const y0 = M.yIntercept(p);
     if (y0 >= yMin && y0 <= yMax) {
       svgEl('circle', { cx: sx(0), cy: sy(y0), r: 4, class: 'intercept' }, plot);
       svgTex(plot, sx(0) + 8, sy(y0) - 4, `(0, ${T(y0)})`, { cls: 'point-label' });
@@ -168,9 +128,9 @@ function showHover(x) {
     hoverOut.innerHTML = '';
     return;
   }
-  const { f, b, d, sx, sy, clampY, xMin, xMax, hover, tangent, subtangent, foot, dot } = view;
+  const { p, f, b, d, sx, sy, clampY, xMin, xMax, hover, tangent, subtangent, foot, dot } = view;
   const y = f(x);
-  const slope = b * (y - d);
+  const slope = M.slope(p, x);
   hover.setAttribute('visibility', 'visible');
   const line = (el, x1, y1, x2, y2) => {
     el.setAttribute('x1', sx(x1));
@@ -184,8 +144,9 @@ function showHover(x) {
   const crosses = b !== 0 && y !== d;
   for (const el of [subtangent, foot]) el.setAttribute('visibility', crosses ? 'visible' : 'hidden');
   if (crosses) {
-    line(subtangent, x - 1 / b, d, x, d);
-    foot.setAttribute('cx', sx(x - 1 / b));
+    const xFoot = M.tangentFoot(p, x);
+    line(subtangent, xFoot, d, x, d);
+    foot.setAttribute('cx', sx(xFoot));
     foot.setAttribute('cy', clampY(sy(d)));
   }
   setTex(hoverOut, `x = ${T(x)} \\quad f(x) = ${T(y)} \\quad f'(x) = ${T(slope)}`);
@@ -220,8 +181,9 @@ const fTex = ({ a, b, c, d }) => `${T(a)}\\,e^{${linear(b, c)}}${d === 0 ? '' : 
 
 // [term, explanation] pairs describing f(x) = a·e^(bx + c) + d for the current
 // parameters, as prose with \( … \) TeX (see texText).
-function properties({ a, b, c, d }) {
-  const A = a * Math.exp(c);
+function properties(p) {
+  const { a, b, c, d } = p;
+  const A = M.scale(p);
   const plusD = d === 0 ? '' : ` ${S(d)}`;
   if (a === 0) {
     return [[`\\(f(x) = ${T(d)}\\)`, 'With \\(a = 0\\) the function is the constant \\(d\\); \\(b\\) and \\(c\\) have no effect.']];
@@ -238,8 +200,9 @@ function properties({ a, b, c, d }) {
     facts.push(['Constant', `With \\(b = 0\\), \\(f(x) = ${T(A + d)}\\) for every \\(x\\).`]);
     return facts;
   }
-  const shift = -c / b;
-  const zero = -d / a > 0 ? (Math.log(-d / a) - c) / b : null;
+  const shift = M.shift(p);
+  const zero = M.zero(p);
+  const twice = M.factorTwoDistance(p);
   // The shifts relative to a·e^(bx), as far as there are any.
   const moves = [];
   if (c !== 0) moves.push(`\\(c\\) shifts it ${shift > 0 ? 'right' : 'left'} by \\(\\left|\\frac{c}{b}\\right| = ${T(Math.abs(shift))}\\)`);
@@ -255,8 +218,8 @@ function properties({ a, b, c, d }) {
       b > 0 ? 'Growth' : 'Decay',
       'The distance \\(|f(x) - d|\\) to the asymptote ' +
         (b > 0
-          ? `doubles every \\(\\frac{\\ln 2}{b} = ${T(Math.LN2 / b)}\\) units of \\(x\\).`
-          : `halves every \\(\\frac{\\ln 2}{|b|} = ${T(Math.LN2 / -b)}\\) units of \\(x\\) (half-life).`),
+          ? `doubles every \\(\\frac{\\ln 2}{b} = ${T(twice)}\\) units of \\(x\\).`
+          : `halves every \\(\\frac{\\ln 2}{|b|} = ${T(twice)}\\) units of \\(x\\) (half-life).`),
     ],
     [
       a * b > 0 ? 'Increasing' : 'Decreasing',
@@ -293,7 +256,8 @@ function update() {
   const list = document.querySelector('#facts dl');
   list.replaceChildren();
   if (valid) {
-    for (const [term, text] of properties(state)) {
+    const { a, b, c, d } = state;
+    for (const [term, text] of properties({ a, b, c, d })) {
       const dt = document.createElement('dt');
       dt.innerHTML = texText(term);
       const dd = document.createElement('dd');
@@ -321,5 +285,5 @@ $('reset').addEventListener('click', () => {
 });
 
 renderStatic();
-writeForm(stateFromHash());
+writeForm(readHash(DEFAULTS));
 update();
