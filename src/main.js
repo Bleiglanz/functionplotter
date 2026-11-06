@@ -3,6 +3,7 @@ import { SurfacePlot, ACCEL_DRAW_SCALE } from './plot.js';
 import { SliceChart } from './sliceChart.js';
 import { formatNumber as fmt } from './format.js';
 import { renderStatic, setTex, texNum as T, texSigned as S, texText } from './tex.js';
+import { stateFromHash, writeHash } from './pageUtils.js';
 
 const PRESETS = [
   { name: 'Ripple', expr: 'sin(sqrt(x^2 + y^2))', range: 10 },
@@ -95,27 +96,6 @@ function writeForm(state) {
   }
   $('resOut').textContent = state.resolution;
   syncSliceControls(state);
-}
-
-function stateFromHash() {
-  const params = new URLSearchParams(location.hash.slice(1));
-  const state = { ...DEFAULTS };
-  for (const key of Object.keys(DEFAULTS)) {
-    if (!params.has(key)) continue;
-    const raw = params.get(key);
-    if (typeof DEFAULTS[key] === 'boolean') state[key] = raw === '1';
-    else if (typeof DEFAULTS[key] === 'number') state[key] = Number.isFinite(+raw) ? +raw : DEFAULTS[key];
-    else state[key] = raw;
-  }
-  return state;
-}
-
-function writeHash(state) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(state)) {
-    params.set(key, typeof value === 'boolean' ? (value ? '1' : '0') : String(value));
-  }
-  history.replaceState(null, '', '#' + params);
 }
 
 // --- Plotting ---------------------------------------------------------------
@@ -375,6 +355,6 @@ function applyTheme() {
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 
 renderStatic();
-writeForm(stateFromHash());
+writeForm(stateFromHash(DEFAULTS));
 applyTheme();
 render();

@@ -1,15 +1,9 @@
 import { formatNumber as fmt, niceTicks } from './format.js';
 import { setTex, texNum as T } from './tex.js';
+import { svgEl } from './pageUtils.js';
 
-const NS = 'http://www.w3.org/2000/svg';
 const MARGIN = { top: 8, right: 12, bottom: 22, left: 44 };
 
-const svgEl = (tag, attrs = {}, parent) => {
-  const el = document.createElementNS(NS, tag);
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-  parent?.appendChild(el);
-  return el;
-};
 
 /**
  * 2D line chart of one slice, e.g. x -> f(x, y0), fed the samples SurfacePlot
