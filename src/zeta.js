@@ -1,6 +1,6 @@
 import { formatNumber as fmt, niceTicks } from './format.js';
 import { renderStatic, setTex, texNum as T, texText } from './tex.js';
-import { svgTex } from './pageUtils.js';
+import { svgEl, svgTex, frame, axes, polyline, stateFromHash, writeHash } from './pageUtils.js';
 import { partialSum, zeta, tailBounds } from './zetaMath.js';
 
 // Page for the Riemann zeta function on the real axis x > 1, with the partial
@@ -10,19 +10,12 @@ const DEFAULTS = { n: 3, xMax: 6, yMax: 5 };
 const N_MAX = 10000;
 const SAMPLES = 500;
 const MARGIN = { top: 12, right: 16, bottom: 26, left: 48 };
-const NS = 'http://www.w3.org/2000/svg';
 
 const $ = (id) => document.getElementById(id);
 const fields = { n: $('n'), xMax: $('xMax'), yMax: $('yMax') };
 const slider = $('nSlider');
 const svg = document.querySelector('#chart svg');
 
-const svgEl = (tag, attrs = {}, parent) => {
-  const el = document.createElementNS(NS, tag);
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-  parent?.appendChild(el);
-  return el;
-};
 const clampN = (n) => Math.min(N_MAX, Math.max(1, Math.round(n) || 1));
 
 // --- State <-> form <-> URL hash -------------------------------------------
@@ -36,19 +29,11 @@ function writeForm(state) {
   slider.value = Math.log10(state.n);
 }
 
-function stateFromHash() {
-  const params = new URLSearchParams(location.hash.slice(1));
-  const state = { ...DEFAULTS };
-  for (const key of Object.keys(DEFAULTS)) {
-    const v = +params.get(key);
-    if (params.has(key) && Number.isFinite(v)) state[key] = v;
-  }
+// The shared parser reads the hash; the page clamps n to the range it supports.
+function loadState() {
+  const state = stateFromHash(DEFAULTS);
   state.n = clampN(state.n);
   return state;
-}
-
-function writeHash(state) {
-  history.replaceState(null, '', '#' + new URLSearchParams(Object.entries(state).map(([k, v]) => [k, String(v)])));
 }
 
 // --- Chart ------------------------------------------------------------------
@@ -58,35 +43,20 @@ let hoverX = null;
 
 function draw(state) {
   const { n, xMax, yMax } = state;
-  const width = svg.clientWidth;
-  const height = svg.clientHeight;
-  svg.replaceChildren();
+  const box = frame(svg, MARGIN);
   view = null;
-  if (!width || !height || !(xMax > 1) || !(yMax > 0)) return;
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  if (!box || !(xMax > 1) || !(yMax > 0)) return;
 
   const xMin = 1;
   const yMin = 0;
-  const plotW = width - MARGIN.left - MARGIN.right;
-  const plotH = height - MARGIN.top - MARGIN.bottom;
+  const { height, plotW, plotH } = box;
   const sx = (x) => MARGIN.left + ((x - xMin) / (xMax - xMin)) * plotW;
   const sy = (y) => MARGIN.top + (1 - (y - yMin) / (yMax - yMin)) * plotH;
   // ζ blows up at x = 1; keep path coordinates finite and short.
   const clampY = (px) => Math.max(-2 * height, Math.min(2 * height, px));
 
-  const clip = svgEl('clipPath', { id: 'plotArea' }, svgEl('defs', {}, svg));
-  svgEl('rect', { x: MARGIN.left, y: MARGIN.top, width: plotW, height: plotH }, clip);
-
-  const grid = svgEl('g', { class: 'grid' }, svg);
-  const labels = svgEl('g', { class: 'tick-labels' }, svg);
-  for (const t of niceTicks(yMin, yMax, 6).ticks.filter((t) => t >= yMin && t <= yMax)) {
-    svgEl('line', { x1: MARGIN.left, x2: width - MARGIN.right, y1: sy(t), y2: sy(t), class: t === 0 ? 'zero' : '' }, grid);
-    svgEl('text', { x: MARGIN.left - 6, y: sy(t), 'text-anchor': 'end', 'dominant-baseline': 'middle' }, labels).textContent = fmt(t, 3);
-  }
-  for (const t of niceTicks(xMin, xMax, 8).ticks.filter((t) => t >= xMin && t <= xMax)) {
-    svgEl('line', { x1: sx(t), x2: sx(t), y1: MARGIN.top, y2: MARGIN.top + plotH }, grid);
-    svgEl('text', { x: sx(t), y: height - 8, 'text-anchor': 'middle' }, labels).textContent = fmt(t, 3);
-  }
+  const xTicks = niceTicks(xMin, xMax, 8).ticks.filter((t) => t >= xMin && t <= xMax);
+  axes(svg, box, xTicks.map((t) => [t, sx(t)]), yMin, yMax, sy);
 
   // Samples are denser near x = 1, where ζ changes fastest.
   const xs = [];
@@ -94,7 +64,7 @@ function draw(state) {
   const zetas = xs.map(zeta);
   const partials = xs.map((x) => partialSum(x, n));
 
-  const plot = svgEl('g', { 'clip-path': 'url(#plotArea)' }, svg);
+  const plot = svgEl('g', { 'clip-path': box.clipUrl }, svg);
   const pt = (x, y) => `${sx(x).toFixed(1)},${clampY(sy(y)).toFixed(1)}`;
   // The tail ζ − Sₙ as a band between the curves (ζ is NaN at x = 1, so start after it).
   let band = '';
@@ -105,9 +75,10 @@ function draw(state) {
   svgEl('line', { x1: sx(1), x2: sx(1), y1: MARGIN.top, y2: MARGIN.top + plotH, class: 'asymptote' }, plot);
   svgEl('line', { x1: MARGIN.left, x2: MARGIN.left + plotW, y1: sy(1), y2: sy(1), class: 'asymptote' }, plot);
 
-  const path = (ys, from) => ys.slice(from).map((y, i) => `${i ? 'L' : 'M'}${pt(xs[i + from], y)}`).join('');
-  svgEl('path', { d: path(zetas, 1), class: 'zeta' }, plot);
-  svgEl('path', { d: path(partials, 0), class: 'partial' }, plot);
+  // polyline skips ζ's NaN at x = 1.
+  const path = (ys) => polyline(ys.map((y, i) => [sx(xs[i]), sy(y)]), clampY);
+  svgEl('path', { d: path(zetas), class: 'zeta' }, plot);
+  svgEl('path', { d: path(partials), class: 'partial' }, plot);
 
   // Known values ζ(2) = π²/6 and ζ(4) = π⁴/90.
   for (const [x, label] of [[2, '\\frac{\\pi^2}{6}'], [4, '\\frac{\\pi^4}{90}']]) {
@@ -233,5 +204,5 @@ $('reset').addEventListener('click', () => {
 new ResizeObserver(() => draw(readForm())).observe(svg);
 
 renderStatic();
-writeForm(stateFromHash());
+writeForm(loadState());
 update();
