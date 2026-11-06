@@ -31,7 +31,7 @@ Every formula on every page is typeset with KaTeX (npm dependency, bundled by Vi
 
 ## Page contract
 
-Every topic page follows these rules. Check types: **T** unit test, **S** static page check in `npm test` (being added by the conformance work in `specs/roadmap-and-page-contract.md`), **M** step of the manual checklist in that spec, **R** the owner's review when the page is added.
+Every topic page follows these rules. Check types: **T** unit test, **S** static page check in `npm test` (`src/pages.test.js`), **M** step of the manual checklist in that spec, **R** the owner's review when the page is added.
 
 ### Universal rules (every page)
 
@@ -86,7 +86,7 @@ If that spec and this file disagree, this file wins and the spec is corrected.
 
 - `npm run dev`: Vite dev server
 - `npm run build` / `npm run preview`: production build into `dist/` and serve it. The ~1.2 MB chunk-size warning is expected (three + mathjs).
-- `npm test`: Vitest, single run
+- `npm test`: Vitest, single run. Includes `src/pages.test.js`, which reads the HTML, scripts and stylesheets from disk and checks the static rules of the page contract (exemptions are the named lists at its top).
 - Single test: `npx vitest run -t "gridIndices"` (filter by test name), or `npx vitest run src/surface.test.js`
 
 ## Architecture
