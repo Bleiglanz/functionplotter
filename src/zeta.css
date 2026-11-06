@@ -1,0 +1,117 @@
+@import './page.css';
+
+/* Zeta page: the n control and the chart's marks. */
+
+.count {
+  display: grid;
+  grid-template-columns: 20px 1fr 80px;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.count legend,
+.field span {
+  padding: 0;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.count label {
+  font: italic 600 17px/1 Georgia, 'Times New Roman', serif;
+}
+
+.count .hint {
+  grid-column: 2 / -1;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.view {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.field {
+  display: grid;
+}
+
+.zeta,
+.partial,
+.asymptote {
+  fill: none;
+  stroke-linejoin: round;
+}
+
+.zeta {
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+.partial {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.gap {
+  fill: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.asymptote {
+  stroke: var(--frame);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 4;
+}
+
+.known {
+  fill: var(--text);
+}
+
+.point-label {
+  fill: var(--text);
+  font-size: 12px;
+}
+
+.crosshair {
+  stroke: var(--frame);
+  stroke-dasharray: 3 3;
+}
+
+.dot-zeta {
+  fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.legend {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.key {
+  display: inline-block;
+  width: 14px;
+  height: 0;
+  margin: 0 4px 0 12px;
+  vertical-align: middle;
+}
+
+.key:first-child {
+  margin-left: 0;
+}
+
+.key.zeta {
+  border-top: 2px solid var(--text);
+}
+
+.key.partial {
+  border-top: 2.5px solid var(--accent);
+}
+
+.key.gap {
+  height: 10px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
