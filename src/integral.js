@@ -145,3 +145,30 @@ export function bounds(f, a, b, nMax) {
   }
   return { lower, upper };
 }
+
+/**
+ * F(x) = ∫ₐˣ f at each of the increasing points xs, accumulated outward from a
+ * piece by piece (adaptive Simpson on each), so an undefined stretch only makes
+ * F undefined beyond it, on the far side from a.
+ */
+export function antiderivative(f, a, xs) {
+  const F = new Array(xs.length).fill(NaN);
+  const first = xs.findIndex((x) => x >= a); // first point at or right of a
+  const start = first === -1 ? xs.length : first;
+  const tol = 1e-10 / Math.max(1, xs.length);
+  let prev = a;
+  let acc = 0;
+  for (let i = start; i < xs.length; i++) {
+    acc += integrate(f, prev, xs[i], tol);
+    F[i] = acc;
+    prev = xs[i];
+  }
+  prev = a;
+  acc = 0;
+  for (let i = start - 1; i >= 0; i--) {
+    acc += integrate(f, prev, xs[i], tol);
+    F[i] = acc;
+    prev = xs[i];
+  }
+  return F;
+}

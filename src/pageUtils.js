@@ -1,0 +1,135 @@
+import { compileFunction } from './expression.js';
+import { formatNumber as fmt, niceTicks } from './format.js';
+
+// Helpers shared by the 2D topic pages: SVG charts, number display and URL-hash state.
+
+const NS = 'http://www.w3.org/2000/svg';
+
+export const svgEl = (tag, attrs = {}, parent) => {
+  const el = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  parent?.appendChild(el);
+  return el;
+};
+
+/** formatNumber with a real minus sign. */
+export const num = (v, digits) => fmt(v, digits).replace('-', '−');
+export const sub = (s) => `<sub>${s}</sub>`;
+export const sup = (s) => `<sup>${s}</sup>`;
+
+/** Evaluates a constant expression such as "pi/2"; errors are prefixed with `name`. */
+export function constant(source, name) {
+  try {
+    return compileFunction(source, [])();
+  } catch (err) {
+    throw new Error(`${name}: ${err.message}`);
+  }
+}
+
+/** Calls f, turning thrown errors and non-finite values into NaN. */
+export function safe(f, x) {
+  try {
+    const y = f(x);
+    return Number.isFinite(y) ? y : NaN;
+  } catch {
+    return NaN;
+  }
+}
+
+/**
+ * Clears the chart's <svg> and sizes it to its box. Returns the plot geometry
+ * ({ width, height, plotW, plotH, margin, clipUrl }, with a clip path for the
+ * plot area), or null while the svg has no size.
+ */
+export function frame(svg, margin) {
+  const width = svg.clientWidth;
+  const height = svg.clientHeight;
+  svg.replaceChildren();
+  if (!width || !height) return null;
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  const plotW = width - margin.left - margin.right;
+  const plotH = height - margin.top - margin.bottom;
+  const id = `${svg.parentElement.id}Clip`;
+  const clip = svgEl('clipPath', { id }, svgEl('defs', {}, svg));
+  svgEl('rect', { x: margin.left, y: margin.top, width: plotW, height: plotH }, clip);
+  return { width, height, plotW, plotH, margin, clipUrl: `url(#${id})` };
+}
+
+/** Grid lines and tick labels; xTicks are [value, screen x] pairs. */
+export function axes(svg, { width, height, plotH, margin }, xTicks, yMin, yMax, sy) {
+  const grid = svgEl('g', { class: 'grid' }, svg);
+  const labels = svgEl('g', { class: 'tick-labels' }, svg);
+  for (const t of niceTicks(yMin, yMax, 5).ticks.filter((t) => t >= yMin && t <= yMax)) {
+    svgEl('line', { x1: margin.left, x2: width - margin.right, y1: sy(t), y2: sy(t), class: t === 0 ? 'zero' : '' }, grid);
+    svgEl('text', { x: margin.left - 6, y: sy(t), 'text-anchor': 'end', 'dominant-baseline': 'middle' }, labels).textContent = num(t, 3);
+  }
+  for (const [t, x] of xTicks) {
+    svgEl('line', { x1: x, x2: x, y1: margin.top, y2: margin.top + plotH, class: t === 0 ? 'zero' : '' }, grid);
+    svgEl('text', { x, y: height - 8, 'text-anchor': 'middle' }, labels).textContent = num(t, 3);
+  }
+}
+
+/** [min, max] of the finite values, widened to include `extra` and padded by 8 %. */
+export function extent(values, ...extra) {
+  let lo = Math.min(...extra);
+  let hi = Math.max(...extra);
+  for (const v of values) {
+    if (!Number.isFinite(v)) continue;
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
+  if (!(hi > lo)) return [lo - 1, hi + 1];
+  const pad = (hi - lo) * 0.08;
+  return [lo - pad, hi + pad];
+}
+
+/**
+ * Like extent(), but ignoring the top and bottom 1 % of the values, so a pole
+ * (1/x near 0) doesn't flatten the rest of the curve.
+ */
+export function robustExtent(values, ...extra) {
+  const sorted = values.filter(Number.isFinite).sort((p, q) => p - q);
+  if (!sorted.length) return extent([], ...extra);
+  const at = (q) => sorted[Math.round(q * (sorted.length - 1))];
+  return extent([at(0.01), at(0.99)], ...extra);
+}
+
+/** SVG path through screen points, broken wherever y is not finite; clampY keeps it short. */
+export function polyline(points, clampY) {
+  let d = '';
+  let pen = false;
+  for (const [x, y] of points) {
+    if (!Number.isFinite(y)) {
+      pen = false;
+      continue;
+    }
+    d += `${pen ? 'L' : 'M'}${x.toFixed(1)},${clampY(y).toFixed(1)}`;
+    pen = true;
+  }
+  return d;
+}
+
+/**
+ * Page state from the URL hash. DEFAULTS defines the keys and their types
+ * (boolean as 1/0, number, or string); unknown or invalid values keep the default.
+ */
+export function stateFromHash(defaults) {
+  const params = new URLSearchParams(location.hash.slice(1));
+  const state = { ...defaults };
+  for (const key of Object.keys(defaults)) {
+    if (!params.has(key)) continue;
+    const raw = params.get(key);
+    if (typeof defaults[key] === 'boolean') state[key] = raw === '1';
+    else if (typeof defaults[key] === 'number') state[key] = Number.isFinite(+raw) ? +raw : defaults[key];
+    else state[key] = raw;
+  }
+  return state;
+}
+
+export function writeHash(state) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(state)) {
+    params.set(key, typeof value === 'boolean' ? (value ? '1' : '0') : String(value));
+  }
+  history.replaceState(null, '', '#' + params);
+}

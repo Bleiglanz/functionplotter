@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { compileFunction } from './expression.js';
-import { partition, tag, riemannSum, sums, bounds, integrate } from './integral.js';
+import { partition, tag, riemannSum, sums, bounds, integrate, antiderivative } from './integral.js';
 
 describe('compileFunction with other variables', () => {
   it('compiles functions of x alone', () => {
@@ -96,5 +96,19 @@ describe('integrate', () => {
 
   it('is NaN where f is undefined', () => {
     expect(integrate(Math.sqrt, -1, 1)).toBeNaN();
+  });
+});
+
+describe('antiderivative', () => {
+  it('is ∫ₐˣ f on both sides of a', () => {
+    const xs = partition(-2, 3, 50);
+    const F = antiderivative((x) => 2 * x, 1, xs);
+    xs.forEach((x, i) => expect(F[i]).toBeCloseTo(x * x - 1, 10));
+  });
+
+  it('is undefined only beyond a gap in f, away from a', () => {
+    const xs = partition(-1, 2, 30);
+    const F = antiderivative((x) => (x < 0 ? NaN : 1), 1, xs);
+    xs.forEach((x, i) => (x >= 0 ? expect(F[i]).toBeCloseTo(x - 1, 10) : expect(F[i]).toBeNaN()));
   });
 });

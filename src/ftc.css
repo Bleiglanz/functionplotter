@@ -1,0 +1,277 @@
+@import './page.css';
+
+/* Fundamental-theorem page: two stacked charts sharing the x axis. */
+
+main {
+  grid-template-areas:
+    'controls anti'
+    'controls chart'
+    'controls facts';
+}
+
+#antiChart {
+  grid-area: anti;
+  margin: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+#antiChart figcaption {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 8px;
+}
+
+#antiFormula {
+  font: italic 17px Georgia, 'Times New Roman', serif;
+}
+
+.readout {
+  color: var(--muted);
+  font: 12px ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+}
+
+#chart svg,
+#antiChart svg {
+  display: block;
+  width: 100%;
+  height: min(36vh, 320px);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+#antiChart svg:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --- Controls --------------------------------------------------------------- */
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+.field span,
+.count legend,
+.range legend {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#controls > .field:first-child span {
+  color: var(--text);
+  font: italic 15px Georgia, 'Times New Roman', serif;
+}
+
+#expr {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.pair {
+  display: grid;
+  gap: 12px;
+}
+
+.count {
+  display: grid;
+  grid-template-columns: 20px 1fr 80px;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.count legend {
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.count label {
+  font: italic 600 17px/1 Georgia, 'Times New Roman', serif;
+}
+
+.riemann {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented label {
+  text-align: center;
+  padding: 5px 2px;
+  cursor: pointer;
+  background: var(--input);
+  border-left: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.segmented label:first-child {
+  border-left: 0;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented label:has(input:checked) {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.segmented label:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+
+/* Rule and n only matter while the rectangles are shown. */
+.riemann:not(:has(#rects:checked)) .count,
+.riemann:not(:has(#rects:checked)) .segmented {
+  opacity: 0.5;
+}
+
+#status {
+  margin: 0;
+  color: var(--error);
+  font-size: 13px;
+}
+
+#status:empty {
+  display: none;
+}
+
+/* --- Marks ------------------------------------------------------------------ */
+
+.curve {
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+.anti {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.area.adds {
+  fill: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.area.subtracts {
+  fill: color-mix(in srgb, var(--negative) 30%, transparent);
+}
+
+.rects rect {
+  fill: none;
+  stroke: var(--text);
+  stroke-opacity: 0.55;
+  stroke-width: 1;
+}
+
+.tangent {
+  stroke: var(--tangent);
+  stroke-width: 1.5;
+}
+
+.tangent.one-sided {
+  stroke-dasharray: 6 4;
+}
+
+.triangle {
+  fill: none;
+  stroke: var(--tangent);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.triangle-label {
+  fill: var(--tangent);
+  font-size: 12px;
+}
+
+.limit,
+.cursor {
+  stroke-dasharray: 3 3;
+}
+
+.limit {
+  stroke: var(--frame);
+}
+
+.cursor {
+  stroke: var(--accent);
+}
+
+.limit-label,
+.cursor-label {
+  font: italic 13px Georgia, 'Times New Roman', serif;
+}
+
+.limit-label {
+  fill: var(--muted);
+}
+
+.cursor-label {
+  fill: var(--accent);
+}
+
+.origin {
+  fill: var(--frame);
+}
+
+.approx {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.5;
+}
+
+.legend {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.key {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  margin: 0 4px 0 12px;
+  vertical-align: middle;
+}
+
+.key:first-child {
+  margin-left: 0;
+}
+
+.key.pos {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.key.neg {
+  background: color-mix(in srgb, var(--negative) 30%, transparent);
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-areas: 'anti' 'chart' 'controls' 'facts';
+  }
+}

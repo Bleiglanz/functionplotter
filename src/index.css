@@ -91,6 +91,7 @@ header p {
 
 /* Thumbnail marks */
 .t-curve,
+.t-sum,
 .t-mesh,
 .t-tangent,
 .t-dashed {
@@ -101,6 +102,15 @@ header p {
 .t-curve {
   stroke: var(--text);
   stroke-width: 2;
+}
+
+.t-sum {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.t-area {
+  fill: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .t-rects rect {

@@ -10,6 +10,10 @@ each, linked from a landing page:
 - **Riemann sums** (`riemann.html`): how ∫ₐᵇ f(x) dx arises from sums over
   equidistant partitions.
 - **Exponential functions** (`exponential.html`): f(x) = a·e<sup>bx+c</sup> + d.
+- **Fundamental theorem of calculus** (`ftc.html`): f with the signed area from a
+  to a draggable b, and above it F(x) = ∫ₐˣ f with its tangent at b, of slope f(b).
+- **Riemann zeta function** (`zeta.html`): ζ(x) for real x > 1 with the partial
+  sums Σ<sub>k=1</sub><sup>n</sup> 1/k<sup>x</sup> and a (logarithmic) slider for n.
 
 ## Riemann sums
 
@@ -91,6 +95,10 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/integral.js` | Pure math for Riemann sums: partitions, sums, reference integral |
 | `src/riemann.js` | Riemann sums page |
 | `src/exponential.js` | Exponential functions page |
+| `src/ftc.js` | Fundamental theorem page |
+| `src/pageUtils.js` | Chart, number and URL-hash helpers shared by the 2D pages |
+| `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
+| `src/zeta.js` | Riemann zeta page |
 
 Each topic is a top-level HTML file; Vite builds every one automatically.
 

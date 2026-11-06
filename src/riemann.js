@@ -1,5 +1,6 @@
 import { compileFunction } from './expression.js';
 import { formatNumber as fmt, niceTicks } from './format.js';
+import { svgEl, num, sub, constant, frame, axes, extent, polyline, stateFromHash as readHash, writeHash } from './pageUtils.js';
 import { RULES, EXTREMUM_SAMPLES, riemannSum, sums, bounds, integrate } from './integral.js';
 
 // Page showing how ∫ₐᵇ f arises from Riemann sums over equidistant partitions:
@@ -21,22 +22,12 @@ const N_MAX = 200;
 const CURVE_SAMPLES = 600;
 const MARGIN = { top: 12, right: 16, bottom: 26, left: 52 };
 const PLAY_INTERVAL = 220; // ms per step of the animation
-const NS = 'http://www.w3.org/2000/svg';
 
 const $ = (id) => document.getElementById(id);
 const fields = { expr: $('expr'), a: $('a'), b: $('b'), n: $('n'), band: $('showBand') };
 const nSlider = $('nSlider');
 const mainSvg = document.querySelector('#chart svg');
 const convSvg = document.querySelector('#convergence svg');
-
-const svgEl = (tag, attrs = {}, parent) => {
-  const el = document.createElementNS(NS, tag);
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-  parent?.appendChild(el);
-  return el;
-};
-const num = (v, digits) => fmt(v, digits).replace('-', '−');
-const sub = (s) => `<sub>${s}</sub>`;
 
 // --- Form, presets and URL hash ---------------------------------------------
 
@@ -70,25 +61,10 @@ function writeForm(state) {
 }
 
 function stateFromHash() {
-  const params = new URLSearchParams(location.hash.slice(1));
-  const state = { ...DEFAULTS };
-  for (const key of Object.keys(DEFAULTS)) {
-    if (!params.has(key)) continue;
-    const raw = params.get(key);
-    if (typeof DEFAULTS[key] === 'boolean') state[key] = raw === '1';
-    else if (typeof DEFAULTS[key] === 'number') state[key] = clampN(+raw);
-    else state[key] = raw;
-  }
+  const state = readHash(DEFAULTS);
+  state.n = clampN(state.n);
   if (!(state.rule in RULES)) state.rule = DEFAULTS.rule;
   return state;
-}
-
-function writeHash(state) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(state)) {
-    params.set(key, typeof value === 'boolean' ? (value ? '1' : '0') : String(value));
-  }
-  history.replaceState(null, '', '#' + params);
 }
 
 // --- Model: everything that depends only on f, a and b -----------------------
@@ -101,13 +77,6 @@ function getModel({ expr, a, b }) {
   if (model?.key === key) return model;
   try {
     const f = compileFunction(expr, ['x']);
-    const constant = (src, name) => {
-      try {
-        return compileFunction(src, [])();
-      } catch (err) {
-        throw new Error(`${name}: ${err.message}`);
-      }
-    };
     const lo = constant(a, 'a');
     const hi = constant(b, 'b');
     if (!Number.isFinite(lo) || !Number.isFinite(hi)) throw new Error('a and b must be finite numbers.');
@@ -135,71 +104,13 @@ function seriesOf(m, rule) {
   return (m.series[rule] ??= sums(m.f, m.a, m.b, N_MAX, rule));
 }
 
-// --- Shared chart helpers -----------------------------------------------------
-
-function frame(svg) {
-  const width = svg.clientWidth;
-  const height = svg.clientHeight;
-  svg.replaceChildren();
-  if (!width || !height) return null;
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  const plotW = width - MARGIN.left - MARGIN.right;
-  const plotH = height - MARGIN.top - MARGIN.bottom;
-  const clip = svgEl('clipPath', { id: `${svg.parentElement.id}Clip` }, svgEl('defs', {}, svg));
-  svgEl('rect', { x: MARGIN.left, y: MARGIN.top, width: plotW, height: plotH }, clip);
-  return { width, height, plotW, plotH, clipUrl: `url(#${svg.parentElement.id}Clip)` };
-}
-
-/** Grid lines and tick labels; xTicks are [value, screen x] pairs. */
-function axes(svg, { width, height, plotH }, xTicks, yMin, yMax, sy) {
-  const grid = svgEl('g', { class: 'grid' }, svg);
-  const labels = svgEl('g', { class: 'tick-labels' }, svg);
-  for (const t of niceTicks(yMin, yMax, 5).ticks.filter((t) => t >= yMin && t <= yMax)) {
-    svgEl('line', { x1: MARGIN.left, x2: width - MARGIN.right, y1: sy(t), y2: sy(t), class: t === 0 ? 'zero' : '' }, grid);
-    svgEl('text', { x: MARGIN.left - 6, y: sy(t), 'text-anchor': 'end', 'dominant-baseline': 'middle' }, labels).textContent = num(t, 3);
-  }
-  for (const [t, x] of xTicks) {
-    svgEl('line', { x1: x, x2: x, y1: MARGIN.top, y2: MARGIN.top + plotH, class: t === 0 ? 'zero' : '' }, grid);
-    svgEl('text', { x, y: height - 8, 'text-anchor': 'middle' }, labels).textContent = num(t, 3);
-  }
-}
-
-/** [min, max] of the finite values, widened to include `extra` and padded by 8 %. */
-function extent(values, ...extra) {
-  let lo = Math.min(...extra);
-  let hi = Math.max(...extra);
-  for (const v of values) {
-    if (!Number.isFinite(v)) continue;
-    if (v < lo) lo = v;
-    if (v > hi) hi = v;
-  }
-  if (!(hi > lo)) return [lo - 1, hi + 1];
-  const pad = (hi - lo) * 0.08;
-  return [lo - pad, hi + pad];
-}
-
-/** SVG path through the points, broken wherever y is not finite. */
-function polyline(points, clampY) {
-  let d = '';
-  let pen = false;
-  for (const [x, y] of points) {
-    if (!Number.isFinite(y)) {
-      pen = false;
-      continue;
-    }
-    d += `${pen ? 'L' : 'M'}${x.toFixed(1)},${clampY(y).toFixed(1)}`;
-    pen = true;
-  }
-  return d;
-}
-
 // --- Rectangle chart ----------------------------------------------------------
 
 let main = null; // the current rectangle chart, read by its hover code
 let hoverIndex = null;
 
 function drawMain(m, current) {
-  const box = frame(mainSvg);
+  const box = frame(mainSvg, MARGIN);
   main = null;
   if (!box || !current) return;
   const { a, b, f } = m;
@@ -302,7 +213,7 @@ let conv = null;
 const LOG_TICKS = [1, 2, 5, 10, 20, 50, 100, 200];
 
 function drawConvergence(m, state) {
-  const box = frame(convSvg);
+  const box = frame(convSvg, MARGIN);
   conv = null;
   if (!box || m.error) return;
   const series = seriesOf(m, state.rule);
