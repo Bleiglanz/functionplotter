@@ -15,7 +15,7 @@ A collection of interactive math visualizations, one HTML page per topic, linked
 - `ftc.html` + `src/ftc.js` + `src/ftc.css`: the fundamental theorem of calculus. Inputs f, a and a view range (all constant expressions, as text), b (number field is the source of truth; slider, ←/→ or dragging in either chart set it; "Sweep" animates it across the view) and optional Riemann rectangles on [a, b]. Two stacked charts with the same x mapping: F(x) = ∫ₐˣ f on top (from `antiderivative()` in `integral.js`, cached per f/a/view in `model`) with the tangent at b and a slope triangle one x-tick wide; f below with the signed area from a to b split into parts that add and subtract (swapped when b < a). One-sided difference quotients of F detect a jump in f at b (`corner`); then the page shows both one-sided slopes instead of a tangent.
 - `zeta.html`: the Riemann zeta function for real x > 1 and its partial sums Sₙ(x) = Σ_{k≤n} k⁻ˣ. Math in `src/zetaMath.js` (tested): `zeta` uses Euler–Maclaurin with N = 10 (near machine precision for x > 1, NaN for x ≤ 1), `partialSum` adds smallest terms first, `tailBounds` gives the integral-test bounds on ζ − Sₙ. `src/zeta.js` draws both curves with the tail shaded between them; n's slider is logarithmic (n = 10^slider, 1…1000) while the number field, the source of truth, allows up to 10000.
 
-Shared helpers for 2D pages live in `src/pageUtils.js` (`svgEl`, `svgTex`, `frame`/`axes`/`polyline`/`extent`/`robustExtent` for SVG charts, `num` for plain-text numbers such as aria-labels, `constant`, `safe`, and `stateFromHash`/`writeHash` for URL state); `riemann.js` and `ftc.js` use them, while `exponential.js` and `zeta.js` still have their own copies of the chart and hash helpers.
+Shared helpers for 2D pages live in `src/pageUtils.js` (`svgEl`, `svgTex`, `frame`/`axes`/`polyline`/`extent`/`robustExtent` for SVG charts, `num` for plain-text numbers such as aria-labels, `safe`, and `stateFromHash`/`writeHash` for URL state); `riemann.js` and `ftc.js` use them, while `exponential.js` and `zeta.js` still have their own copies of the chart and hash helpers.
 
 ## Math typesetting (KaTeX)
 
@@ -29,11 +29,58 @@ Every formula on every page is typeset with KaTeX (npm dependency, bundled by Vi
 - Exception: the 3D view's labels (axis names, ticks, slice-plane labels) are three.js canvas sprites in `plot.js` and stay plain text.
 - Tests: `src/tex.test.js`.
 
-To add a topic: create `<topic>.html` at the top level (`vite.config.js` picks up every top-level `*.html` as a build entry automatically), a `src/<topic>.js`, and a `src/<topic>.css` that starts with `@import './page.css';` for the shared 2D layout (header with a `.home` "← All topics" link, `#controls` panel, `#chart` figure, `#facts` list). Put pure math in its own DOM-free module with a `*.test.js`, keep state in the URL hash like the existing pages, and add a card to `index.html` and a line to the README.
+## Page contract
+
+Every topic page follows these rules. Check types: **T** unit test, **S** static page check in `npm test` (being added by the conformance work in `specs/roadmap-and-page-contract.md`), **M** step of the manual checklist in that spec, **R** the owner's review when the page is added.
+
+### Universal rules (every page)
+
+| Rule | Requirement | Check |
+| :--- | :---------- | :---- |
+| U1 | The page is a top-level `<topic>.html`; Vite picks it up automatically. | — (by construction: the page list is read from disk) |
+| U2 | `index.html` has a card linking to it. | S |
+| U3 | `README.md` has a line describing it. | S |
+| U4 | The page links back to `./index.html`. | S |
+| U5 | All math is typeset with KaTeX through `src/tex.js`; the page script calls `renderStatic()`; the page HTML contains no `<sup>`/`<sub>`. | S, M |
+| U6 | Page state lives only in the URL hash, read and written through `stateFromHash`/`writeHash` in `src/pageUtils.js`. Once a page has shipped, every URL that opened it keeps opening the same view: a file is never renamed, and a renamed key is still read under its old name. The parser tests hold one saved hash per page. | T, M |
+| U7 | The page's math lives in a DOM-free module with a `*.test.js`. | R |
+| U8 | Colors come from `src/theme.css`; the page works in light and dark mode. | M |
+| U9 | All assets are bundled; the page makes no network requests while running. Pages that parse no user expression do not import `src/expression.js` (the math.js chunk). | S (expression import only), M |
+| U10 | The page is usable at phone width. | M |
+
+### 2D page rules (SVG pages)
+
+| Rule | Requirement | Check |
+| :--- | :---------- | :---- |
+| P1 | The page's stylesheet starts with `@import './page.css';`. | S |
+| P2 | Layout: `#controls`, one main `#chart` figure, `#facts`; extra chart figures are allowed and carry class `chart-figure`. | S (the three ids) |
+| P3 | SVG, chart and hash helpers come from `src/pageUtils.js`. The page script contains no `createElementNS(` and no `URLSearchParams(location.hash`; page-specific wrappers (for example clamping) may have any name. | S |
+| P4 | The header has a `.home` link to the index. | S |
+| P5 | Charts have a hover readout and ←/→ keyboard control. | M |
+
+**Named exceptions:** the surface plotter (`surface.html`) follows the
+universal rules only. It keeps its home link in the panel (U4 holds), stores
+the panel's collapsed state in `localStorage` (an exception to U6, since that
+state is a viewer preference, not part of the view), and its 3D labels are
+canvas sprites (already exempt from U5).
+
+To add a topic:
+
+1. Apply the page-admission rule in `specs/roadmap-and-page-contract.md`; if the topic fails it, report back instead of building the page.
+2. Create `<topic>.html` at the top level, `src/<topic>.js`, `src/<topic>.css` (starting with `@import './page.css';`) and the page's math in a DOM-free module with a `*.test.js`. Build from the shared modules (`pageUtils.js`, `tex.js`, `expression.js`); don't copy helpers. A topic that needs a new convention (for example a matrix encoding in the hash) adds it to this file in the same change.
+3. Add a card to `index.html` and a line to `README.md`.
+4. Pass `npm test` and `npm run build`, then stop and list the manual checklist steps (in the spec) for the new page and the index as pending for the owner.
 
 ## Specs and reviews
 
 EGM artifact directory: ./specs
+
+`specs/roadmap-and-page-contract.md` holds the topic roadmap, the page-admission rule, the manual checklist and the reasons behind the project's main decisions. Two rules from it are mandatory:
+
+- Before adding a topic, apply the admission rule in that spec.
+- Before pushing to `master`, the owner runs that spec's manual checklist for what changed.
+
+If that spec and this file disagree, this file wins and the spec is corrected.
 
 ## Commands
 
@@ -46,7 +93,7 @@ EGM artifact directory: ./specs
 
 For the surface plotter, data flows one way: form → `compileFunction` → `sampleSurface` → three.js geometry.
 
-- `src/expression.js`: wraps math.js, shared by all pages. `compileFunction(source, variables = ['x', 'y'])` returns a function taking the variables positionally; `['x']` gives f(x), `[]` a constant (used for interval endpoints like `pi/2`). Rejects any symbol other than the variables and a few constants (function names in call position are exempt), then test-evaluates once so bad functions/arity fail at compile time instead of per sample. Non-number results (e.g. complex values from `sqrt(-1)`) become `NaN`.
+- `src/expression.js`: wraps math.js, shared by all pages. `compileFunction(source, variables = ['x', 'y'])` returns a function taking the variables positionally; `['x']` gives f(x), `[]` a constant (used for interval endpoints like `pi/2`; `constant(source, name)` wraps this and prefixes errors with the field name). Rejects any symbol other than the variables and a few constants (function names in call position are exempt), then test-evaluates once so bad functions/arity fail at compile time instead of per sample. Non-number results (e.g. complex values from `sqrt(-1)`) become `NaN`.
 - `src/surface.js`: pure math with no three.js import, so it is unit-testable. Samples an `(n+1)²` grid, row-major with `index = j*(n+1) + i` (i along x, j along y). Any non-finite value or thrown error is stored as `NaN`. `gridIndices` drops triangles that touch a NaN sample, which is how undefined regions render as holes.
 - `src/plot.js` (`SurfacePlot`): owns the renderer, camera, OrbitControls and scene. Key conventions:
   - World **+Z is up** (`camera.up = (0,0,1)`), matching math convention, not three.js's default +Y.

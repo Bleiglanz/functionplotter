@@ -1,7 +1,7 @@
 # Topic Roadmap, Page Contract and Conformance of Existing Pages
 
 *   **Author:** Anton Rechenauer
-*   **Status:** Proposed
+*   **Status:** Approved
 *   **Date:** 2026-11-06
 
 --------------------------------------------------------------------------------
@@ -210,44 +210,10 @@ They make the admission rule and checklist binding even though they live
 here (author's choice; the cost is that a must-follow rule lives outside the
 authoritative file).
 
-### Proposed contract (moves to `AGENTS.md` in commit 1)
+### Page contract
 
-This table is the proposal for `AGENTS.md`. Commit 1 copies it there and
-replaces it here with one line pointing to `AGENTS.md`, so the spec never
-holds a second copy. Each rule names how it is checked: **T** unit test,
-**S** static page check in `npm test`, **M** manual checklist step, **R**
-owner's review when the page is added.
-
-**Universal rules (every page):**
-
-| Rule | Requirement | Check |
-| :--- | :---------- | :---- |
-| U1 | The page is a top-level `<topic>.html`; Vite picks it up automatically. | — (by construction: the page list is read from disk) |
-| U2 | `index.html` has a card linking to it. | S |
-| U3 | `README.md` has a line describing it. | S |
-| U4 | The page links back to `./index.html`. | S |
-| U5 | All math is typeset with KaTeX through `src/tex.js`; the page script calls `renderStatic()`; the page HTML contains no `<sup>`/`<sub>`. | S, M |
-| U6 | Page state lives only in the URL hash, read and written through `parseHash`/`serializeHash` in `src/pageUtils.js`. Once a page has shipped, every URL that opened it keeps opening the same view: a file is never renamed, and a renamed key is still read under its old name. The parser tests hold one saved hash per page. | T, M |
-| U7 | The page's math lives in a DOM-free module with a `*.test.js`. | R |
-| U8 | Colors come from `src/theme.css`; the page works in light and dark mode. | M |
-| U9 | All assets are bundled; the page makes no network requests while running. Pages that parse no user expression do not import `src/expression.js` (the math.js chunk). | S (expression import only), M |
-| U10 | The page is usable at phone width. | M |
-
-**2D page rules (SVG pages):**
-
-| Rule | Requirement | Check |
-| :--- | :---------- | :---- |
-| P1 | The page's stylesheet starts with `@import './page.css';`. | S |
-| P2 | Layout: `#controls`, one main `#chart` figure, `#facts`; extra chart figures are allowed and carry class `chart-figure`. | S (the three ids) |
-| P3 | SVG, chart and hash helpers come from `src/pageUtils.js`. The page script contains no `createElementNS(` and no `URLSearchParams(location.hash`; page-specific wrappers (for example clamping) may have any name. | S |
-| P4 | The header has a `.home` link to the index. | S |
-| P5 | Charts have a hover readout and ←/→ keyboard control. | M |
-
-**Named exceptions:** the surface plotter (`surface.html`) follows the
-universal rules only. It keeps its home link in the panel (U4 holds), stores
-the panel's collapsed state in `localStorage` (an exception to U6, since that
-state is a viewer preference, not part of the view), and its 3D labels are
-canvas sprites (already exempt from U5).
+The page contract (U1–U10, P1–P5, with check types and the surface
+plotter's named exceptions) is in `AGENTS.md`, section "Page contract".
 
 ### Page-admission rule
 
