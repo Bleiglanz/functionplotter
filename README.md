@@ -1,12 +1,28 @@
 # functionplotter
 
-An interactive browser plotter for surfaces z = f(x, y), built with
-[three.js](https://threejs.org) and [math.js](https://mathjs.org).
+A collection of interactive math visualizations for selected topics, one page
+each, linked from a landing page:
 
-Type an expression, orbit the surface, slice it, and explore its differential
-geometry: tangent planes, unit tangent vectors and the geodesics they start.
+- **Surfaces z = f(x, y)** (`surface.html`): a 3D plotter built with
+  [three.js](https://threejs.org) and [math.js](https://mathjs.org). Type an
+  expression, orbit the surface, slice it, and explore its differential geometry:
+  tangent planes, unit tangent vectors and the geodesics they start.
+- **Riemann sums** (`riemann.html`): how ∫ₐᵇ f(x) dx arises from sums over
+  equidistant partitions.
+- **Exponential functions** (`exponential.html`): f(x) = a·e<sup>bx+c</sup> + d.
 
-## Features
+## Riemann sums
+
+Enter f(x), an interval a < b (numbers or expressions such as `pi/2`) and the
+number n of subintervals, and choose where each rectangle samples f: left,
+midpoint or right endpoint, or the infimum/supremum (lower/upper Darboux sums).
+The page shows the rectangles (hover one for its numbers), a second chart of
+Sₙ against n inside the band between lower and upper sums, converging to the
+integral (click it to jump to an n), and an explanation with the error and how
+fast it shrinks. "Animate" runs n from 1 to 200. Examples include signed area
+(sin on [0, 2π]), ln as ∫ 1/x, and π/2 as the area of a half disc.
+
+## Surface plotter features
 
 - **Any expression in x and y**, parsed by math.js: `sin(sqrt(x^2 + y^2))`,
   `3(1-x)^2 exp(-x^2-(y+1)^2)`, … Implicit multiplication and the constants
@@ -69,7 +85,14 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/plot.js` | three.js scene: surface, slices, tangent plane, picking |
 | `src/sliceChart.js` | 2D SVG charts for the slices |
 | `src/main.js` | UI wiring and URL-hash state |
-| `src/style.css` | Layout and theme colors |
+| `src/style.css` | Surface plotter layout |
+| `src/theme.css` | Theme colors shared by all pages |
+| `src/page.css` | Layout shared by the 2D pages |
+| `src/integral.js` | Pure math for Riemann sums: partitions, sums, reference integral |
+| `src/riemann.js` | Riemann sums page |
+| `src/exponential.js` | Exponential functions page |
+
+Each topic is a top-level HTML file; Vite builds every one automatically.
 
 Live version: https://bleiglanz.github.io/functionplotter/ (deployed from `master` by GitHub Actions on every push).
 

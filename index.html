@@ -3,110 +3,61 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Surface Plotter</title>
-    <link rel="stylesheet" href="/src/style.css" />
+    <title>Math Visualizations</title>
+    <script>
+      // The surface plotter used to live here; keep old shared links (#expr=…) working.
+      if (/(^#|&)expr=/.test(location.hash)) location.replace('./surface.html' + location.hash);
+    </script>
+    <link rel="stylesheet" href="/src/index.css" />
   </head>
   <body>
-    <div id="viewport"></div>
+    <header>
+      <h1>Math Visualizations</h1>
+      <p>Interactive pictures for selected topics. Change the parameters and watch the mathematics respond; every page keeps its state in the URL, so a link reproduces what you see.</p>
+    </header>
 
-    <form id="panel" autocomplete="off">
-      <div class="expr">
-        <div class="expr-head">
-          <label for="expr">f(x, y) =</label>
-          <button id="panelToggle" class="panel-toggle" type="button" aria-expanded="true" aria-controls="panelBody">
-            Controls
-            <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" /></svg>
-          </button>
-        </div>
-        <input id="expr" name="expr" spellcheck="false" />
-      </div>
+    <main>
+      <ul class="topics">
+        <li>
+          <a href="./riemann.html">
+            <svg viewBox="0 0 120 72" aria-hidden="true">
+              <g class="t-rects">
+                <rect x="12" y="58" width="16" height="4" /><rect x="28" y="52" width="16" height="10" />
+                <rect x="44" y="42" width="16" height="20" /><rect x="60" y="30" width="16" height="32" />
+                <rect x="76" y="16" width="16" height="46" /><rect x="92" y="4" width="16" height="58" />
+              </g>
+              <path class="t-curve" d="M12 62 Q60 60 108 4" />
+            </svg>
+            <h2>Riemann sums</h2>
+            <p>How the integral ∫ₐᵇ f(x) dx arises as the limit of rectangle sums over finer and finer partitions, squeezed between lower and upper sums.</p>
+          </a>
+        </li>
+        <li>
+          <a href="./exponential.html">
+            <svg viewBox="0 0 120 72" aria-hidden="true">
+              <line class="t-dashed" x1="6" y1="58" x2="114" y2="58" />
+              <path class="t-curve" d="M6 57 C50 55 80 48 92 30 S104 6 106 2" />
+              <line class="t-tangent" x1="60" y1="66" x2="112" y2="10" />
+            </svg>
+            <h2>Exponential functions</h2>
+            <p>f(x) = a·e<sup>bx+c</sup> + d: what each parameter does, tangents that always meet the asymptote 1/b away, growth and decay.</p>
+          </a>
+        </li>
+        <li>
+          <a href="./surface.html">
+            <svg viewBox="0 0 120 72" aria-hidden="true">
+              <path class="t-mesh" d="M10 44 L60 62 L110 44 L60 26 Z M22 40 Q60 10 98 40 M35 35 Q60 18 85 35 M10 44 Q50 20 60 26 M110 44 Q70 20 60 26" />
+              <path class="t-curve" d="M16 42 Q60 4 104 42" />
+            </svg>
+            <h2>Surfaces z = f(x, y)</h2>
+            <p>A 3D plotter with slices, tangent planes, geodesics and their acceleration vectors.</p>
+          </a>
+        </li>
+      </ul>
+    </main>
 
-      <div id="panelBody" class="panel-body">
-        <label class="row">
-          <span>Preset</span>
-          <select id="preset">
-            <option value="">Choose…</option>
-          </select>
-        </label>
-
-        <fieldset class="range">
-          <legend>x</legend>
-          <input id="xMin" type="number" step="any" aria-label="x min" />
-          <span>to</span>
-          <input id="xMax" type="number" step="any" aria-label="x max" />
-        </fieldset>
-        <fieldset class="range">
-          <legend>y</legend>
-          <input id="yMin" type="number" step="any" aria-label="y min" />
-          <span>to</span>
-          <input id="yMax" type="number" step="any" aria-label="y max" />
-        </fieldset>
-
-        <label class="row">
-          <span>Resolution <output id="resOut"></output></span>
-          <input id="resolution" type="range" min="10" max="400" step="10" />
-        </label>
-
-        <div class="checks">
-          <label><input id="fitZ" type="checkbox" /> Fit z to view</label>
-          <label><input id="meshLines" type="checkbox" /> Mesh lines</label>
-        </div>
-
-        <fieldset class="slice" data-axis="x">
-          <label><input id="sliceX" type="checkbox" /> Slice at x = x₀</label>
-          <div id="sliceXControls" class="slice-controls">
-            <input id="x0Slider" type="range" aria-label="x₀ slider" />
-            <input id="x0" type="number" step="any" aria-label="x₀" />
-          </div>
-        </fieldset>
-
-        <fieldset class="slice" data-axis="y">
-          <label><input id="sliceY" type="checkbox" /> Slice at y = y₀</label>
-          <div id="sliceYControls" class="slice-controls">
-            <input id="y0Slider" type="range" aria-label="y₀ slider" />
-            <input id="y0" type="number" step="any" aria-label="y₀" />
-          </div>
-        </fieldset>
-
-        <p class="hint">Click the surface to show its tangent plane, then click or drag its unit circle to trace a geodesic.</p>
-
-        <button id="resetView" type="button">Reset view</button>
-
-        <a class="hint" href="./exponential.html">Exponential functions a·e<sup>bx+c</sup> + d →</a>
-      </div>
-
-      <p id="status" role="status"></p>
-
-      <div id="tangent" hidden>
-        <div class="tangent-head">
-          <span id="tangentPoint"></span>
-          <button id="clearTangent" type="button">Clear</button>
-        </div>
-        <code id="tangentEq"></code>
-        <p id="geodesicInfo"></p>
-        <p id="accelInfo" hidden></p>
-      </div>
-    </form>
-
-    <div id="readout" hidden></div>
-
-    <div id="charts">
-      <figure id="sliceXChart" class="slice-chart" data-axis="x" hidden>
-        <figcaption>
-          <span class="chart-title"></span>
-          <span class="chart-value"></span>
-        </figcaption>
-        <svg tabindex="0" role="img"></svg>
-      </figure>
-      <figure id="sliceYChart" class="slice-chart" data-axis="y" hidden>
-        <figcaption>
-          <span class="chart-title"></span>
-          <span class="chart-value"></span>
-        </figcaption>
-        <svg tabindex="0" role="img"></svg>
-      </figure>
-    </div>
-
-    <script type="module" src="/src/main.js"></script>
+    <footer>
+      <a href="https://github.com/bleiglanz/functionplotter">Source on GitHub</a> · MIT license
+    </footer>
   </body>
 </html>

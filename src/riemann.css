@@ -1,0 +1,259 @@
+@import './page.css';
+
+/* Riemann-sum page: a second chart (convergence) and the rectangles. */
+
+main {
+  grid-template-areas:
+    'controls chart'
+    'controls convergence'
+    'controls facts';
+}
+
+#convergence {
+  grid-area: convergence;
+  margin: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+#convergence figcaption {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 8px;
+}
+
+#convHover {
+  color: var(--muted);
+  font: 12px ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+}
+
+#chart svg {
+  height: min(52vh, 460px);
+}
+
+#convergence svg {
+  display: block;
+  width: 100%;
+  height: 220px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  touch-action: none;
+}
+
+#convergence svg:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --- Controls --------------------------------------------------------------- */
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+.field span,
+.count legend,
+.rules legend {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.field:first-child span {
+  color: var(--text);
+  font: italic 15px Georgia, 'Times New Roman', serif;
+}
+
+#expr {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.count {
+  display: grid;
+  grid-template-columns: 20px 1fr 72px;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.count legend {
+  padding: 0;
+  margin-bottom: 4px;
+}
+
+.count label {
+  font: italic 600 17px/1 Georgia, 'Times New Roman', serif;
+}
+
+.rules legend {
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented label {
+  text-align: center;
+  padding: 5px 2px;
+  cursor: pointer;
+  background: var(--input);
+  border-left: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.segmented label:first-child {
+  border-left: 0;
+}
+
+/* The radio itself is hidden; its label is the button. */
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented label:has(input:checked) {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.segmented label:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+#status {
+  margin: 0;
+  color: var(--error);
+  font-size: 13px;
+}
+
+#status:empty {
+  display: none;
+}
+
+/* --- Marks ------------------------------------------------------------------ */
+
+.area {
+  fill: var(--text);
+  opacity: 0.08;
+}
+
+.rects rect {
+  stroke-width: 1;
+}
+
+.rects .pos {
+  fill: color-mix(in srgb, var(--accent) 28%, transparent);
+  stroke: var(--accent);
+}
+
+.rects .neg {
+  fill: color-mix(in srgb, var(--negative) 28%, transparent);
+  stroke: var(--negative);
+}
+
+/* Narrow rectangles: outlines would turn the area into solid stripes. */
+.rects .thin {
+  stroke: none;
+}
+
+.rects .active {
+  fill: color-mix(in srgb, var(--tangent) 45%, transparent);
+  stroke: var(--tangent);
+  stroke-width: 2;
+}
+
+.curve {
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+.bound {
+  stroke: var(--frame);
+  stroke-dasharray: 3 3;
+}
+
+.tags circle {
+  fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+
+.series {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.band {
+  fill: color-mix(in srgb, var(--accent) 16%, transparent);
+  stroke: none;
+}
+
+.exact {
+  stroke: var(--text);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.conv-hover {
+  fill: var(--tangent);
+}
+
+/* Legend swatches in the convergence caption. */
+.legend {
+  margin-left: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.key {
+  display: inline-block;
+  width: 14px;
+  height: 0;
+  margin: 0 4px 0 10px;
+  vertical-align: middle;
+}
+
+.key.rule {
+  border-top: 2px solid var(--accent);
+}
+
+.key.band {
+  height: 10px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.key.exact {
+  border-top: 2px dashed var(--text);
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-areas: 'chart' 'controls' 'convergence' 'facts';
+  }
+}

@@ -1,15 +1,21 @@
 import { compile, parse } from 'mathjs';
 
-const ALLOWED_VARIABLES = new Set(['x', 'y', 'pi', 'e', 'PI', 'E', 'tau', 'phi']);
+const CONSTANTS = ['pi', 'e', 'PI', 'E', 'tau', 'phi'];
+// A point unlikely to hit a domain edge, for the up-front test evaluation.
+const TEST_POINT = [0.123, 0.456, 0.789];
 
 /**
- * Compiles a user expression like "sin(x) * cos(y)" into a fast (x, y) => number.
+ * Compiles a user expression like "sin(x) * cos(y)" into a fast function of the
+ * given variables, taken positionally: compileFunction('x^2 + y')(3, 1) === 10.
+ * With `variables = []` the expression is a constant, e.g. "pi/2", and the
+ * result is a function of no arguments.
  * Throws an Error with a readable message if the expression is invalid or
- * references variables other than x and y.
+ * references other variables. Non-number results (e.g. complex) become NaN.
  */
-export function compileFunction(source) {
+export function compileFunction(source, variables = ['x', 'y']) {
+  const names = variables.join(' and ');
   const text = source.trim();
-  if (!text) throw new Error('Enter an expression in x and y.');
+  if (!text) throw new Error(variables.length ? `Enter an expression in ${names}.` : 'Enter a number.');
 
   let node;
   try {
@@ -18,30 +24,30 @@ export function compileFunction(source) {
     throw new Error(`Syntax error: ${err.message}`);
   }
 
+  const allowed = new Set([...variables, ...CONSTANTS]);
   const unknown = new Set();
   node.traverse((n, path, parent) => {
     // Function names (the "sin" in sin(x)) are SymbolNodes too; skip them.
-    if (n.isSymbolNode && !(parent?.isFunctionNode && path === 'fn') && !ALLOWED_VARIABLES.has(n.name)) {
+    if (n.isSymbolNode && !(parent?.isFunctionNode && path === 'fn') && !allowed.has(n.name)) {
       unknown.add(n.name);
     }
   });
   if (unknown.size) {
-    throw new Error(`Unknown variable${unknown.size > 1 ? 's' : ''}: ${[...unknown].join(', ')}. Use x and y.`);
+    const hint = variables.length ? `Use ${names}.` : 'Only constants like pi and e are allowed here.';
+    throw new Error(`Unknown variable${unknown.size > 1 ? 's' : ''}: ${[...unknown].join(', ')}. ${hint}`);
   }
 
   const code = compile(text);
-  const scope = { x: 0, y: 0 };
-  const f = (x, y) => {
-    scope.x = x;
-    scope.y = y;
+  const scope = Object.fromEntries(variables.map((v) => [v, 0]));
+  const f = (...args) => {
+    for (let i = 0; i < variables.length; i++) scope[variables[i]] = args[i];
     const value = code.evaluate(scope);
     return typeof value === 'number' ? value : NaN;
   };
 
-  // Catch errors like unknown functions or wrong arity up front, at a point
-  // unlikely to hit a domain edge.
+  // Catch errors like unknown functions or wrong arity up front.
   try {
-    f(0.123, 0.456);
+    f(...TEST_POINT);
   } catch (err) {
     throw new Error(err.message);
   }

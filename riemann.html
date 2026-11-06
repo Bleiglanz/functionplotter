@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riemann Sums</title>
+    <link rel="stylesheet" href="/src/riemann.css" />
+  </head>
+  <body>
+    <header>
+      <h1>From Riemann sums to the integral</h1>
+      <a class="home" href="./index.html">← All topics</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <label class="field">
+          <span>f(x) =</span>
+          <input id="expr" spellcheck="false" />
+        </label>
+
+        <label class="field">
+          <span>Example</span>
+          <select id="preset">
+            <option value="">Choose…</option>
+          </select>
+        </label>
+
+        <fieldset class="range">
+          <legend>Interval [a, b] (numbers or expressions like pi/2)</legend>
+          <input id="a" spellcheck="false" aria-label="a" />
+          <span>to</span>
+          <input id="b" spellcheck="false" aria-label="b" />
+        </fieldset>
+
+        <fieldset class="count">
+          <legend>Number of subintervals</legend>
+          <label for="n">n</label>
+          <input id="nSlider" type="range" min="1" max="200" step="1" aria-label="n slider" />
+          <input id="n" type="number" min="1" max="1000" step="1" />
+        </fieldset>
+
+        <fieldset class="rules">
+          <legend>Sample point ξᵢ in each subinterval</legend>
+          <div id="rules" class="segmented"></div>
+        </fieldset>
+
+        <div class="actions">
+          <button id="play" type="button" aria-pressed="false">▶ Animate n → 200</button>
+          <label class="check"><input id="showBand" type="checkbox" /> Lower / upper sums</label>
+        </div>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+      </figure>
+
+      <figure id="convergence">
+        <figcaption>
+          <span>Sₙ as n grows <span class="legend"><i class="key rule"></i> Sₙ <i class="key band"></i> between lower and upper sum <i class="key exact"></i> integral</span></span>
+          <span id="convHover"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>What is being summed</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/riemann.js"></script>
+  </body>
+</html>
