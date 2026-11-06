@@ -8,7 +8,7 @@
       // The surface plotter used to live here; keep old shared links (#expr=…) working.
       if (/(^#|&)expr=/.test(location.hash)) location.replace('./surface.html' + location.hash);
     </script>
-    <link rel="stylesheet" href="/src/index.css" />
+    <script type="module" src="/src/index.js"></script>
   </head>
   <body>
     <header>
@@ -29,7 +29,7 @@
               <path class="t-curve" d="M12 62 Q60 60 108 4" />
             </svg>
             <h2>Riemann sums</h2>
-            <p>How the integral ∫ₐᵇ f(x) dx arises as the limit of rectangle sums over finer and finer partitions, squeezed between lower and upper sums.</p>
+            <p>How the integral \(\int_a^b f(x)\,dx\) arises as the limit of rectangle sums over finer and finer partitions, squeezed between lower and upper sums.</p>
           </a>
         </li>
         <li>
@@ -41,7 +41,7 @@
               <path class="t-curve" d="M8 58 C30 54 50 56 70 66 S100 66 112 60" />
             </svg>
             <h2>Fundamental theorem of calculus</h2>
-            <p>Slide b and watch the area ∫ₐᵇ f build the antiderivative F, whose tangent at b has slope exactly f(b).</p>
+            <p>Slide \(b\) and watch the area \(\int_a^b f\) build the antiderivative \(F\), whose tangent at \(b\) has slope exactly \(f(b)\).</p>
           </a>
         </li>
         <li>
@@ -52,7 +52,7 @@
               <path class="t-sum" d="M10 30 C30 46 60 52 114 54" />
             </svg>
             <h2>Riemann zeta function</h2>
-            <p>ζ(x) = Σ 1/kˣ for real x &gt; 1, and how the partial sums 1 + 1/2ˣ + … + 1/nˣ creep up to it as n grows.</p>
+            <p>\(\zeta(x) = \sum_{k=1}^\infty \frac{1}{k^x}\) for real \(x &gt; 1\), and how the partial sums \(1 + \frac{1}{2^x} + \dots + \frac{1}{n^x}\) creep up to it as \(n\) grows.</p>
           </a>
         </li>
         <li>
@@ -63,7 +63,7 @@
               <line class="t-tangent" x1="60" y1="66" x2="112" y2="10" />
             </svg>
             <h2>Exponential functions</h2>
-            <p>f(x) = a·e<sup>bx+c</sup> + d: what each parameter does, tangents that always meet the asymptote 1/b away, growth and decay.</p>
+            <p>\(f(x) = a\,e^{bx+c} + d\): what each parameter does, tangents that always meet the asymptote \(1/b\) away, growth and decay.</p>
           </a>
         </li>
         <li>
@@ -72,7 +72,7 @@
               <path class="t-mesh" d="M10 44 L60 62 L110 44 L60 26 Z M22 40 Q60 10 98 40 M35 35 Q60 18 85 35 M10 44 Q50 20 60 26 M110 44 Q70 20 60 26" />
               <path class="t-curve" d="M16 42 Q60 4 104 42" />
             </svg>
-            <h2>Surfaces z = f(x, y)</h2>
+            <h2>Surfaces \(z = f(x, y)\)</h2>
             <p>A 3D plotter with slices, tangent planes, geodesics and their acceleration vectors.</p>
           </a>
         </li>

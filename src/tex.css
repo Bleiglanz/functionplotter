@@ -1,0 +1,46 @@
+/* KaTeX tuning shared by every page (imported from tex.js). KaTeX inherits the
+   text color, so formulas follow the light/dark theme on their own. */
+
+.katex {
+  font-size: 1.05em;
+}
+
+.tex-nowrap {
+  white-space: nowrap;
+}
+
+/* Labels inside SVG charts: a foreignObject anchored at a point, its content
+   shifted by the data-anchor/data-baseline set in svgTex(). */
+.tex-label {
+  overflow: visible;
+  pointer-events: none;
+}
+
+.tex-label > div {
+  width: max-content;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.tex-label[data-anchor='middle'] > div {
+  translate: -50% 0;
+}
+
+.tex-label[data-anchor='end'] > div {
+  translate: -100% 0;
+}
+
+.tex-label[data-baseline='bottom'] > div {
+  transform: translateY(-100%);
+}
+
+.tex-label[data-baseline='middle'] > div {
+  transform: translateY(-50%);
+}
+
+/* Error spans from invalid TeX should be noticed during development. */
+.katex-error {
+  color: var(--error) !important;
+}

@@ -18,7 +18,7 @@
 }
 
 .count label {
-  font: italic 600 17px/1 Georgia, 'Times New Roman', serif;
+  font-size: 17px;
 }
 
 .count .hint {
@@ -69,9 +69,8 @@
   fill: var(--text);
 }
 
-.point-label {
-  fill: var(--text);
-  font-size: 12px;
+.tex-label.point-label > div {
+  color: var(--text);
 }
 
 .crosshair {

@@ -240,11 +240,8 @@ button:hover {
 }
 
 #tangentEq {
-  display: block;
-  margin-top: 4px;
-  font: 12px ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
+  margin: 4px 0 0;
+  overflow-x: auto;
 }
 
 #geodesicInfo,
@@ -308,9 +305,6 @@ button:hover {
   font-size: 12px;
 }
 
-.chart-title {
-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-}
 
 /* Swatch tying the chart to its slice color in the 3D view. */
 .chart-title::before {

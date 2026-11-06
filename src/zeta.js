@@ -1,4 +1,6 @@
 import { formatNumber as fmt, niceTicks } from './format.js';
+import { renderStatic, setTex, texNum as T, texText } from './tex.js';
+import { svgTex } from './pageUtils.js';
 import { partialSum, zeta, tailBounds } from './zetaMath.js';
 
 // Page for the Riemann zeta function on the real axis x > 1, with the partial
@@ -21,8 +23,6 @@ const svgEl = (tag, attrs = {}, parent) => {
   parent?.appendChild(el);
   return el;
 };
-const sub = (s) => `<sub>${s}</sub>`;
-const sup = (s) => `<sup>${s}</sup>`;
 const clampN = (n) => Math.min(N_MAX, Math.max(1, Math.round(n) || 1));
 
 // --- State <-> form <-> URL hash -------------------------------------------
@@ -110,11 +110,11 @@ function draw(state) {
   svgEl('path', { d: path(partials, 0), class: 'partial' }, plot);
 
   // Known values ζ(2) = π²/6 and ζ(4) = π⁴/90.
-  for (const [x, label] of [[2, 'π²/6'], [4, 'π⁴/90']]) {
+  for (const [x, label] of [[2, '\\frac{\\pi^2}{6}'], [4, '\\frac{\\pi^4}{90}']]) {
     if (x > xMax) continue;
     const y = zeta(x);
     svgEl('circle', { cx: sx(x), cy: sy(y), r: 3.5, class: 'known' }, plot);
-    svgEl('text', { x: sx(x) + 6, y: sy(y) - 8, class: 'point-label' }, plot).textContent = `ζ(${x}) = ${label}`;
+    svgTex(plot, sx(x) + 6, sy(y) - 6, `\\zeta(${x}) = ${label}`, { cls: 'point-label' });
   }
 
   view = { n, xMax, sx, sy, plotW, clampY };
@@ -131,7 +131,7 @@ function showHover(x) {
   const out = $('hover');
   if (!view || x == null || !(x > 1) || x > view.xMax) {
     view?.hover.setAttribute('visibility', 'hidden');
-    out.textContent = '';
+    out.innerHTML = '';
     return;
   }
   const { n, sx, sy, clampY, hover, rule, dotZeta, dotPartial } = view;
@@ -144,7 +144,7 @@ function showHover(x) {
     el.setAttribute('cx', sx(x));
     el.setAttribute('cy', clampY(sy(y)));
   }
-  out.textContent = `x ${fmt(x)}   ζ ${fmt(z, 6)}   Sₙ ${fmt(s, 6)}   ζ − Sₙ ${fmt(z - s)}`;
+  setTex(out, `x = ${T(x)} \\quad \\zeta(x) = ${T(z, 6)} \\quad S_{${n}}(x) = ${T(s, 6)} \\quad \\zeta(x) - S_{${n}}(x) = ${T(z - s)}`);
 }
 
 svg.addEventListener('pointermove', (e) => {
@@ -170,46 +170,46 @@ function properties({ n }) {
   const harmonic = partialSum(1, n);
   return [
     [
-      `S${sub('n')}(x) ↑ ζ(x)`,
-      `All terms are positive, so the partial sums increase with n and stay below ζ(x). ` +
-        `At x = 2: S${sub(n)}(2) = ${fmt(at2, 8)}, while ζ(2) = π²/6 = ${fmt(Math.PI ** 2 / 6, 8)} (Euler, 1734).`,
+      `\\(S_n(x) \\uparrow \\zeta(x)\\)`,
+      `All terms are positive, so the partial sums increase with \\(n\\) and stay below \\(\\zeta(x)\\). ` +
+        `At \\(x = 2\\): \\(S_{${n}}(2) = ${T(at2, 8)}\\), while \\(\\zeta(2) = \\frac{\\pi^2}{6} = ${T(Math.PI ** 2 / 6, 8)}\\) (Euler, 1734).`,
     ],
     [
       'Tail',
-      `Comparing Σ${sub('k>n')} 1/k${sup('x')} with ∫ t${sup('−x')} dt gives ` +
-        `(n+1)${sup('1−x')}/(x − 1) &lt; ζ(x) − S${sub('n')}(x) &lt; n${sup('1−x')}/(x − 1). ` +
-        `At x = 2 with n = ${n} that is between ${fmt(tail2.lower)} and ${fmt(tail2.upper)}: ` +
-        `the error shrinks only like 1/n, and more slowly still as x → 1.`,
+      `Comparing \\(\\sum_{k>n} \\frac{1}{k^x}\\) with \\(\\int t^{-x}\\,dt\\) gives ` +
+        `\\(\\frac{(n+1)^{1-x}}{x-1} < \\zeta(x) - S_n(x) < \\frac{n^{1-x}}{x-1}\\). ` +
+        `At \\(x = 2\\) with \\(n = ${n}\\) that is between \\(${T(tail2.lower)}\\) and \\(${T(tail2.upper)}\\): ` +
+        `the error shrinks only like \\(1/n\\), and more slowly still as \\(x \\to 1\\).`,
     ],
     [
-      'Pole at x = 1',
-      `At x = 1 the series is the harmonic series, S${sub(n)}(1) = ${fmt(harmonic, 6)} ≈ ln n + γ = ${fmt(Math.log(n) + 0.5772156649, 6)}, which diverges. ` +
-        `Correspondingly ζ(x) ≈ 1/(x − 1) + γ near x = 1 (γ ≈ 0.5772, the Euler–Mascheroni constant).`,
+      'Pole at \\(x = 1\\)',
+      `At \\(x = 1\\) the series is the harmonic series, \\(S_{${n}}(1) = ${T(harmonic, 6)} \\approx \\ln n + \\gamma = ${T(Math.log(n) + 0.5772156649, 6)}\\), which diverges. ` +
+        `Correspondingly \\(\\zeta(x) \\approx \\frac{1}{x-1} + \\gamma\\) near \\(x = 1\\) (\\(\\gamma \\approx 0.5772\\), the Euler–Mascheroni constant).`,
     ],
-    ['ζ(x) → 1', `As x → ∞ every term but 1/1${sup('x')} vanishes; ζ(x) − 1 ≈ 2${sup('−x')}.`],
+    ['\\(\\zeta(x) \\to 1\\)', 'As \\(x \\to \\infty\\) every term but \\(\\frac{1}{1^x}\\) vanishes; \\(\\zeta(x) - 1 \\approx 2^{-x}\\).'],
     [
       'Euler product',
-      `ζ(x) = Π${sub('p prime')} 1/(1 − p${sup('−x')}): expanding each factor as a geometric series and multiplying ` +
-        `produces every 1/k${sup('x')} exactly once, by unique prime factorization.`,
+      '\\(\\zeta(x) = \\prod_{p \\text{ prime}} \\frac{1}{1 - p^{-x}}\\): expanding each factor as a geometric series and multiplying ' +
+        'produces every \\(\\frac{1}{k^x}\\) exactly once, by unique prime factorization.',
     ],
     [
-      'Beyond x > 1',
-      `The series diverges for x ≤ 1, but ζ extends analytically to all complex numbers except the pole at 1. ` +
-        `The Riemann hypothesis concerns its zeros there; this page stays on the real axis, x &gt; 1.`,
+      'Beyond \\(x > 1\\)',
+      'The series diverges for \\(x \\le 1\\), but \\(\\zeta\\) extends analytically to all complex numbers except the pole at \\(1\\). ' +
+        'The Riemann hypothesis concerns its zeros there; this page stays on the real axis, \\(x > 1\\).',
     ],
   ];
 }
 
 function update() {
   const state = readForm();
-  $('formula').innerHTML = `S${sub(state.n)}(x) = Σ${sub('k=1')}${sup(state.n)} 1/k${sup('x')}`;
+  setTex($('formula'), `S_{${state.n}}(x) = \\sum_{k=1}^{${state.n}} \\frac{1}{k^x}`);
   const list = document.querySelector('#facts dl');
   list.replaceChildren();
   for (const [term, text] of properties(state)) {
     const dt = document.createElement('dt');
-    dt.innerHTML = term;
+    dt.innerHTML = texText(term);
     const dd = document.createElement('dd');
-    dd.innerHTML = text;
+    dd.innerHTML = texText(text);
     list.append(dt, dd);
   }
   draw(state);
@@ -232,5 +232,6 @@ $('reset').addEventListener('click', () => {
 });
 new ResizeObserver(() => draw(readForm())).observe(svg);
 
+renderStatic();
 writeForm(stateFromHash());
 update();

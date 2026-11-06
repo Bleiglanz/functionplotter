@@ -1,5 +1,6 @@
 import { compileFunction } from './expression.js';
 import { formatNumber as fmt, niceTicks } from './format.js';
+import { tex } from './tex.js';
 
 // Helpers shared by the 2D topic pages: SVG charts, number display and URL-hash state.
 
@@ -12,10 +13,29 @@ export const svgEl = (tag, attrs = {}, parent) => {
   return el;
 };
 
-/** formatNumber with a real minus sign. */
+/** formatNumber with a real minus sign, for plain text such as aria-labels and tick labels. */
 export const num = (v, digits) => fmt(v, digits).replace('-', '−');
-export const sub = (s) => `<sub>${s}</sub>`;
-export const sup = (s) => `<sup>${s}</sup>`;
+
+/**
+ * A KaTeX-typeset label inside an SVG chart, positioned like SVG text at (x, y):
+ * anchor 'start' | 'middle' | 'end' horizontally, baseline 'bottom' (the label
+ * sits above y, like SVG text), 'middle' or 'top'. `cls` sets its color via CSS.
+ */
+export function svgTex(parent, x, y, src, { anchor = 'start', baseline = 'bottom', cls = '' } = {}) {
+  const fo = svgEl('foreignObject', {
+    x,
+    y,
+    width: 1,
+    height: 1,
+    class: `tex-label ${cls}`.trim(),
+    'data-anchor': anchor,
+    'data-baseline': baseline,
+  }, parent);
+  const div = document.createElement('div');
+  div.innerHTML = tex(src);
+  fo.append(div);
+  return fo;
+}
 
 /** Evaluates a constant expression such as "pi/2"; errors are prefixed with `name`. */
 export function constant(source, name) {

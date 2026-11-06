@@ -8,14 +8,14 @@
   </head>
   <body>
     <header>
-      <h1>The fundamental theorem: F(x) = ∫<sub>a</sub><sup>x</sup> f(t) dt has F′ = f</h1>
+      <h1>The fundamental theorem: \(F(x) = \int_a^x f(t)\,dt\) has \(F' = f\)</h1>
       <a class="home" href="./index.html">← All topics</a>
     </header>
 
     <main>
       <form id="controls" autocomplete="off">
         <label class="field">
-          <span>f(x) =</span>
+          <span>\(f(x) =\)</span>
           <input id="expr" spellcheck="false" />
         </label>
 
@@ -28,11 +28,11 @@
 
         <div class="pair">
           <label class="field">
-            <span>Lower limit a</span>
+            <span>Lower limit \(a\)</span>
             <input id="a" spellcheck="false" />
           </label>
           <fieldset class="range">
-            <legend>View x from</legend>
+            <legend>View \(x\) from</legend>
             <input id="xMin" spellcheck="false" aria-label="x min" />
             <span>to</span>
             <input id="xMax" spellcheck="false" aria-label="x max" />
@@ -41,17 +41,17 @@
 
         <fieldset class="count">
           <legend>Upper limit (or drag in either chart)</legend>
-          <label for="b">b</label>
+          <label for="b">\(b\)</label>
           <input id="bSlider" type="range" aria-label="b slider" />
           <input id="b" type="number" step="any" />
         </fieldset>
 
-        <button id="play" type="button" aria-pressed="false">▶ Sweep b across the view</button>
+        <button id="play" type="button" aria-pressed="false">▶ Sweep \(b\) across the view</button>
 
         <fieldset class="riemann">
-          <label class="check"><input id="rects" type="checkbox" /> Riemann rectangles on [a, b]</label>
+          <label class="check"><input id="rects" type="checkbox" /> Riemann rectangles on \([a, b]\)</label>
           <div class="count">
-            <label for="n">n</label>
+            <label for="n">\(n\)</label>
             <input id="nSlider" type="range" min="1" max="200" step="1" aria-label="n slider" />
             <input id="n" type="number" min="1" max="200" step="1" />
           </div>
@@ -75,7 +75,7 @@
           <span id="hover" class="readout"></span>
         </figcaption>
         <svg tabindex="0" role="img"></svg>
-        <p class="legend"><i class="key pos"></i> adds to F(b) <i class="key neg"></i> subtracts from F(b)</p>
+        <p class="legend"><i class="key pos"></i> adds to \(F(b)\) <i class="key neg"></i> subtracts from \(F(b)\)</p>
       </figure>
 
       <section id="facts" aria-live="polite">

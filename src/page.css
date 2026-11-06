@@ -167,7 +167,7 @@ fieldset {
 }
 
 #formula {
-  font: italic 17px Georgia, 'Times New Roman', serif;
+  font-size: 17px;
 }
 
 #hover {
@@ -230,7 +230,6 @@ fieldset {
 }
 
 #facts dt {
-  font-family: Georgia, 'Times New Roman', serif;
   font-weight: 600;
   white-space: nowrap;
 }

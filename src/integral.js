@@ -4,12 +4,13 @@
 /** Points inspected per subinterval (plus its endpoints) to approximate inf and sup. */
 export const EXTREMUM_SAMPLES = 10;
 
+// `tag` describes the choice of ξᵢ, as prose with \( … \) TeX for texText() in tex.js.
 export const RULES = {
-  left: { label: 'Left', tag: 'ξᵢ = xᵢ₋₁, the left endpoint' },
-  midpoint: { label: 'Mid', tag: 'ξᵢ = (xᵢ₋₁ + xᵢ)/2, the midpoint' },
-  right: { label: 'Right', tag: 'ξᵢ = xᵢ, the right endpoint' },
-  lower: { label: 'Lower', tag: 'f(ξᵢ) = inf f on [xᵢ₋₁, xᵢ] (lower Darboux sum)' },
-  upper: { label: 'Upper', tag: 'f(ξᵢ) = sup f on [xᵢ₋₁, xᵢ] (upper Darboux sum)' },
+  left: { label: 'Left', tag: '\\(\\xi_i = x_{i-1}\\), the left endpoint' },
+  midpoint: { label: 'Mid', tag: '\\(\\xi_i = \\frac{x_{i-1} + x_i}{2}\\), the midpoint' },
+  right: { label: 'Right', tag: '\\(\\xi_i = x_i\\), the right endpoint' },
+  lower: { label: 'Lower', tag: '\\(f(\\xi_i) = \\inf_{[x_{i-1}, x_i]} f\\) (lower Darboux sum)' },
+  upper: { label: 'Upper', tag: '\\(f(\\xi_i) = \\sup_{[x_{i-1}, x_i]} f\\) (upper Darboux sum)' },
 };
 
 /** The n + 1 points of the equidistant partition a = x₀ < x₁ < … < xₙ = b. */

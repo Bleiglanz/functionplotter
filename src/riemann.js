@@ -1,6 +1,7 @@
-import { compileFunction } from './expression.js';
+import { compileFunction, expressionToTex } from './expression.js';
 import { formatNumber as fmt, niceTicks } from './format.js';
-import { svgEl, num, sub, constant, frame, axes, extent, polyline, stateFromHash as readHash, writeHash } from './pageUtils.js';
+import { renderStatic, setTex, tex, texNum as T, texText } from './tex.js';
+import { svgEl, constant, frame, axes, extent, polyline, stateFromHash as readHash, writeHash } from './pageUtils.js';
 import { RULES, EXTREMUM_SAMPLES, riemannSum, sums, bounds, integrate } from './integral.js';
 
 // Page showing how ∫ₐᵇ f arises from Riemann sums over equidistant partitions:
@@ -188,7 +189,7 @@ function highlight(i) {
   const { xs, tags, dx } = main.current;
   main.rectEls[i]?.classList.add('active');
   const { x, y } = tags[i];
-  out.textContent = `i ${i + 1}  [${num(xs[i])}, ${num(xs[i + 1])}]  ξ ${num(x)}  f(ξ) ${num(y)}  f(ξ)·Δx ${num(y * dx)}`;
+  setTex(out, `i = ${i + 1} \\quad [${T(xs[i])}, ${T(xs[i + 1])}] \\quad \\xi_i = ${T(x)} \\quad f(\\xi_i) = ${T(y)} \\quad f(\\xi_i)\\,\\Delta x = ${T(y * dx)}`);
 }
 
 mainSvg.addEventListener('pointermove', (e) => {
@@ -267,8 +268,8 @@ function showConvHover(n) {
     conv.hover.setAttribute('cx', conv.sx(n));
     conv.hover.setAttribute('cy', conv.clampY(conv.sy(s)));
   }
-  const err = Number.isFinite(conv.integral) ? `  Sₙ − ∫ ${num(conv.snap(s - conv.integral))}` : '';
-  out.textContent = `n ${n}  Sₙ ${num(conv.snap(s))}${err}`;
+  const err = Number.isFinite(conv.integral) ? ` \\quad S_{${n}} - \\int_a^b f = ${T(conv.snap(s - conv.integral))}` : '';
+  setTex(out, `n = ${n} \\quad S_{${n}} = ${T(conv.snap(s))}${err}`);
 }
 
 convSvg.addEventListener('pointermove', (e) => conv && showConvHover(convAt(e.clientX)));
@@ -286,26 +287,27 @@ function facts(m, state, current) {
   const { n, rule } = state;
   const { a, b, integral } = m;
   const S = m.snap(current.sum);
+  const I = Number.isFinite(integral) ? T(integral, 8) : '';
   const items = [
     [
       'Partition',
-      `Cut [a, b] = [${num(a)}, ${num(b)}] into n = ${n} equal pieces of width ` +
-        `Δx = (b − a)/n = ${num(current.dx)}, with points x${sub('i')} = a + i·Δx for i = 0, …, ${n}.`,
+      `Cut \\([a, b] = [${T(a)}, ${T(b)}]\\) into \\(n = ${n}\\) equal pieces of width ` +
+        `\\(\\Delta x = \\frac{b - a}{n} = ${T(current.dx)}\\), with points \\(x_i = a + i\\,\\Delta x\\) for \\(i = 0, \\dots, ${n}\\).`,
     ],
-    ['Sample points', `In each piece [x${sub('i−1')}, x${sub('i')}] pick ${RULES[rule].tag}.`],
+    ['Sample points', `In each piece \\([x_{i-1}, x_i]\\) pick ${RULES[rule].tag}.`],
     [
-      `S${sub('n')} = Σ f(ξ${sub('i')})·Δx`,
-      `Each rectangle has width Δx and height f(ξ${sub('i')}); heights below the axis count negatively. ` +
+      `\\(S_n = \\sum_{i=1}^n f(\\xi_i)\\,\\Delta x\\)`,
+      `Each rectangle has width \\(\\Delta x\\) and height \\(f(\\xi_i)\\); heights below the axis count negatively. ` +
         (Number.isFinite(S)
-          ? `Their total is S${sub(n)} = ${num(S, 6)}.`
-          : `f is undefined at one of the sample points, so the sum is too.`),
+          ? `Their total is \\(S_{${n}} = ${T(S, 6)}\\).`
+          : `\\(f\\) is undefined at one of the sample points, so the sum is too.`),
     ],
   ];
   if (Number.isFinite(integral)) {
     items.push([
-      `∫${sub('a')}<sup>b</sup> f(x) dx`,
-      `The limit of S${sub('n')} as n → ∞ is the integral, here ${num(integral, 8)} (computed independently with adaptive Simpson).` +
-        (Number.isFinite(S) ? ` With n = ${n} the error is S${sub(n)} − ∫ = ${num(m.snap(S - integral))}.` : ''),
+      `\\(\\int_a^b f(x)\\,dx\\)`,
+      `The limit \\(\\lim_{n \\to \\infty} S_n\\) is the integral, here \\(${I}\\) (computed independently with adaptive Simpson).` +
+        (Number.isFinite(S) ? ` With \\(n = ${n}\\) the error is \\(S_{${n}} - \\int_a^b f = ${T(m.snap(S - integral))}\\).` : ''),
     ]);
     // How fast the error shrinks: compare n with 2n.
     const series = seriesOf(m, rule);
@@ -314,32 +316,37 @@ function facts(m, state, current) {
       const e2 = series[2 * n - 1] - integral;
       if (Number.isFinite(e1) && Number.isFinite(e2) && Math.abs(e2) > 1e-12 * Math.max(1, Math.abs(integral))) {
         const ratio = e1 / e2;
-        const order = rule === 'midpoint' ? 'about 4: the midpoint error shrinks like 1/n²' : 'about 2: the error shrinks like 1/n';
-        items.push(['Rate', `Doubling n divides the error by ${num(ratio, 3)} (for smooth f ${order}).`]);
+        const order = rule === 'midpoint'
+          ? 'about 4: the midpoint error shrinks like \\(1/n^2\\)'
+          : 'about 2: the error shrinks like \\(1/n\\)';
+        items.push(['Rate', `Doubling \\(n\\) divides the error by \\(${T(ratio, 3)}\\) (for smooth \\(f\\) ${order}).`]);
       }
     }
   } else {
-    items.push(['∫ f(x) dx', 'The reference integral could not be computed: f is undefined or unbounded somewhere on [a, b].']);
+    items.push([
+      `\\(\\int_a^b f(x)\\,dx\\)`,
+      'The reference integral could not be computed: \\(f\\) is undefined or unbounded somewhere on \\([a, b]\\).',
+    ]);
   }
   const { lower, upper } = boundsOf(m);
   const L = m.snap(lower[n - 1]);
   const U = m.snap(upper[n - 1]);
   if (Number.isFinite(L) && Number.isFinite(U)) {
     items.push([
-      `L${sub('n')} ≤ S${sub('n')} ≤ U${sub('n')}`,
-      `Whatever ξ${sub('i')} you pick, the sum lies between the lower sum L${sub(n)} = ${num(L, 6)} (infimum in each piece) ` +
-        `and the upper sum U${sub(n)} = ${num(U, 6)} (supremum). Their gap is ${num(U - L)}. ` +
-        `f is Riemann integrable exactly when this gap can be made as small as you like; then every choice of ξ${sub('i')} ` +
-        `is squeezed to the same limit, the integral. (inf and sup are estimated from ${EXTREMUM_SAMPLES + 1} values per piece.)`,
+      `\\(L_n \\le S_n \\le U_n\\)`,
+      `Whatever \\(\\xi_i\\) you pick, the sum lies between the lower sum \\(L_{${n}} = ${T(L, 6)}\\) (infimum in each piece) ` +
+        `and the upper sum \\(U_{${n}} = ${T(U, 6)}\\) (supremum). Their gap is \\(U_{${n}} - L_{${n}} = ${T(U - L)}\\). ` +
+        `\\(f\\) is Riemann integrable exactly when this gap can be made as small as you like; then every choice of \\(\\xi_i\\) ` +
+        `is squeezed to the same limit, the integral. (\\(\\inf\\) and \\(\\sup\\) are estimated from ${EXTREMUM_SAMPLES + 1} values per piece.)`,
     ]);
   }
   const list = document.querySelector('#facts dl');
   list.replaceChildren();
   for (const [term, text] of items) {
     const dt = document.createElement('dt');
-    dt.innerHTML = term;
+    dt.innerHTML = texText(term);
     const dd = document.createElement('dd');
-    dd.innerHTML = text;
+    dd.innerHTML = texText(text);
     list.append(dt, dd);
   }
 }
@@ -354,8 +361,9 @@ function update() {
   const current = m.error ? null : riemannSum(m.f, m.a, m.b, state.n, state.rule);
   const formula = $('formula');
   if (current) {
-    formula.innerHTML = `S${sub(state.n)} = ${Number.isFinite(current.sum) ? num(m.snap(current.sum), 6) : 'undefined'}` +
-      (Number.isFinite(m.integral) ? ` &nbsp;→&nbsp; ∫ = ${num(m.integral, 6)}` : '');
+    const integral = `\\int_{${expressionToTex(state.a)}}^{${expressionToTex(state.b)}} ${expressionToTex(state.expr)}\\,dx`;
+    setTex(formula, `S_{${state.n}} = ${T(m.snap(current.sum), 6)}` +
+      (Number.isFinite(m.integral) ? ` \\;\\longrightarrow\\; ${integral} = ${T(m.integral, 6)}` : ''));
   } else {
     formula.textContent = '';
   }
@@ -375,7 +383,7 @@ let timer = null;
 function stopPlay() {
   clearInterval(timer);
   timer = null;
-  $('play').textContent = `▶ Animate n → ${N_MAX}`;
+  $('play').innerHTML = `▶ Animate ${tex(`n \\to ${N_MAX}`)}`;
   $('play').setAttribute('aria-pressed', 'false');
 }
 $('play').addEventListener('click', () => {
@@ -420,5 +428,6 @@ const resize = new ResizeObserver(() => update());
 resize.observe(mainSvg);
 resize.observe(convSvg);
 
+renderStatic();
 writeForm(stateFromHash());
 update();

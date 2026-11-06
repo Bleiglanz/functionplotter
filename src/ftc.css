@@ -27,7 +27,7 @@ main {
 }
 
 #antiFormula {
-  font: italic 17px Georgia, 'Times New Roman', serif;
+  font-size: 17px;
 }
 
 .readout {
@@ -70,7 +70,7 @@ main {
 
 #controls > .field:first-child span {
   color: var(--text);
-  font: italic 15px Georgia, 'Times New Roman', serif;
+  font-size: 15px;
 }
 
 #expr {
@@ -95,7 +95,7 @@ main {
 }
 
 .count label {
-  font: italic 600 17px/1 Georgia, 'Times New Roman', serif;
+  font-size: 17px;
 }
 
 .riemann {
@@ -203,9 +203,8 @@ main {
   stroke-dasharray: 4 3;
 }
 
-.triangle-label {
-  fill: var(--tangent);
-  font-size: 12px;
+.tex-label.triangle-label > div {
+  color: var(--tangent);
 }
 
 .limit,
@@ -221,17 +220,12 @@ main {
   stroke: var(--accent);
 }
 
-.limit-label,
-.cursor-label {
-  font: italic 13px Georgia, 'Times New Roman', serif;
+.tex-label.limit-label > div {
+  color: var(--muted);
 }
 
-.limit-label {
-  fill: var(--muted);
-}
-
-.cursor-label {
-  fill: var(--accent);
+.tex-label.cursor-label > div {
+  color: var(--accent);
 }
 
 .origin {

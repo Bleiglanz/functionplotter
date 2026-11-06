@@ -1,7 +1,7 @@
 # functionplotter
 
 A collection of interactive math visualizations for selected topics, one page
-each, linked from a landing page:
+each, linked from a landing page. Formulas are typeset with [KaTeX](https://katex.org):
 
 - **Surfaces z = f(x, y)** (`surface.html`): a 3D plotter built with
   [three.js](https://threejs.org) and [math.js](https://mathjs.org). Type an
@@ -96,6 +96,7 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/riemann.js` | Riemann sums page |
 | `src/exponential.js` | Exponential functions page |
 | `src/ftc.js` | Fundamental theorem page |
+| `src/tex.js` | KaTeX helpers used for every formula on every page |
 | `src/pageUtils.js` | Chart, number and URL-hash helpers shared by the 2D pages |
 | `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
 | `src/zeta.js` | Riemann zeta page |

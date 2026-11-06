@@ -2,6 +2,7 @@ import { compileFunction } from './expression.js';
 import { SurfacePlot, ACCEL_DRAW_SCALE } from './plot.js';
 import { SliceChart } from './sliceChart.js';
 import { formatNumber as fmt } from './format.js';
+import { renderStatic, setTex, texNum as T, texSigned as S, texText } from './tex.js';
 
 const PRESETS = [
   { name: 'Ripple', expr: 'sin(sqrt(x^2 + y^2))', range: 10 },
@@ -152,9 +153,9 @@ function render() {
   if (framing) plot.resetView(); // again, now that the chart inset is known
   showTangentInfo(plot.tangent.data);
   status.className = finite ? '' : 'error';
-  status.textContent = finite
-    ? `z from ${fmt(zMin)} to ${fmt(zMax)} · ${ms} ms`
-    : 'f is undefined everywhere in this domain.';
+  status.innerHTML = finite
+    ? texText(`\\(z\\) from \\(${T(zMin)}\\) to \\(${T(zMax)}\\) · ${ms} ms`)
+    : texText('\\(f\\) is undefined everywhere in this domain.');
   writeHash(state);
 }
 
@@ -198,31 +199,32 @@ function updateChartInset() {
 
 // --- Tangent plane ------------------------------------------------------------
 
-// "+ 2 (x − 1)" style term; the constant c is subtracted from v.
+// TeX for a term like "+ 2\,(x - 1)" of the tangent-plane equation; c is subtracted from v.
 function linearTerm(coef, v, c) {
-  const sign = coef < 0 ? '−' : '+';
-  const shifted = c === 0 ? v : `(${v} ${c < 0 ? '+' : '−'} ${fmt(Math.abs(c))})`;
-  return ` ${sign} ${fmt(Math.abs(coef))} ${shifted}`;
+  const shifted = c === 0 ? v : `(${v} ${S(-c)})`;
+  return ` ${S(coef)}\\,${shifted}`;
 }
 
 function showTangentInfo(t) {
   tangentInfo.hidden = !t;
   if (!t) return;
-  $('tangentPoint').textContent = `Tangent plane at (${fmt(t.x)}, ${fmt(t.y)}, ${fmt(t.z)})`;
-  $('tangentEq').textContent = `z = ${fmt(t.z).replace('-', '−')}${linearTerm(t.fx, 'x', t.x)}${linearTerm(t.fy, 'y', t.y)}`;
+  const point = (p) => `(${T(p.x)}, ${T(p.y)}, ${T(p.z)})`;
+  $('tangentPoint').innerHTML = texText(`Tangent plane at \\(${point(t)}\\)`);
+  setTex($('tangentEq'), `z = ${T(t.z)}${linearTerm(t.fx, 'x', t.x)}${linearTerm(t.fy, 'y', t.y)}`);
   const v = t.velocity;
-  $('geodesicInfo').textContent = v
-    ? `Geodesic with γ′(0) = (${fmt(v.x)}, ${fmt(v.y)}, ${fmt(v.z)})`
-    : 'Click or drag the unit circle to trace a geodesic.';
+  $('geodesicInfo').innerHTML = texText(
+    v ? `Geodesic with \\(\\gamma'(0) = ${point(v)}\\)` : 'Click or drag the unit circle to trace a geodesic.',
+  );
   const accel = $('accelInfo');
   accel.hidden = !v;
   const a = t.acceleration;
   if (!a) accel.textContent = 'Click the geodesic to show its acceleration.';
   else {
     const { point: p, vector: g } = a;
-    accel.textContent =
-      `γ″ at (${fmt(p.x)}, ${fmt(p.y)}, ${fmt(p.z)}) = (${fmt(g.x)}, ${fmt(g.y)}, ${fmt(g.z)}), ` +
-      `|γ″| = ${fmt(Math.hypot(g.x, g.y, g.z))} (drawn ${ACCEL_DRAW_SCALE}×)`;
+    accel.innerHTML = texText(
+      `\\(\\gamma''\\) at \\(${point(p)}\\) is \\(${point(g)}\\), ` +
+        `\\(|\\gamma''| = ${T(Math.hypot(g.x, g.y, g.z))}\\) (drawn ${ACCEL_DRAW_SCALE}×)`,
+    );
   }
 }
 
@@ -350,7 +352,7 @@ canvas.addEventListener('pointermove', (e) => {
   else canvas.style.cursor = plot.pickGeodesic(e.clientX, e.clientY) == null ? '' : 'pointer';
   const p = plot.pick(e.clientX, e.clientY);
   readout.hidden = !p;
-  if (p) readout.textContent = `x ${fmt(p.x)}  y ${fmt(p.y)}  f ${fmt(p.z)}`;
+  if (p) setTex(readout, `x = ${T(p.x)} \\quad y = ${T(p.y)} \\quad f(x, y) = ${T(p.z)}`);
 });
 canvas.addEventListener('pointerleave', () => (readout.hidden = true));
 
@@ -372,6 +374,7 @@ function applyTheme() {
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 
+renderStatic();
 writeForm(stateFromHash());
 applyTheme();
 render();

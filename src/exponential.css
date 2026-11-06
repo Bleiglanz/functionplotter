@@ -10,7 +10,7 @@
 }
 
 .param label {
-  font: italic 600 17px/1 Georgia, 'Times New Roman', serif;
+  font-size: 17px;
 }
 
 /* A negative parameter: slider and letter switch to --negative. */
@@ -59,14 +59,12 @@
   fill: var(--text);
 }
 
-.asymptote-label {
-  fill: var(--accent);
-  font-size: 12px;
+.tex-label.asymptote-label > div {
+  color: var(--accent);
 }
 
-.point-label {
-  fill: var(--text);
-  font-size: 12px;
+.tex-label.point-label > div {
+  color: var(--text);
 }
 
 .tangent {

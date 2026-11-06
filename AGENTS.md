@@ -15,7 +15,19 @@ A collection of interactive math visualizations, one HTML page per topic, linked
 - `ftc.html` + `src/ftc.js` + `src/ftc.css`: the fundamental theorem of calculus. Inputs f, a and a view range (all constant expressions, as text), b (number field is the source of truth; slider, ←/→ or dragging in either chart set it; "Sweep" animates it across the view) and optional Riemann rectangles on [a, b]. Two stacked charts with the same x mapping: F(x) = ∫ₐˣ f on top (from `antiderivative()` in `integral.js`, cached per f/a/view in `model`) with the tangent at b and a slope triangle one x-tick wide; f below with the signed area from a to b split into parts that add and subtract (swapped when b < a). One-sided difference quotients of F detect a jump in f at b (`corner`); then the page shows both one-sided slopes instead of a tangent.
 - `zeta.html`: the Riemann zeta function for real x > 1 and its partial sums Sₙ(x) = Σ_{k≤n} k⁻ˣ. Math in `src/zetaMath.js` (tested): `zeta` uses Euler–Maclaurin with N = 10 (near machine precision for x > 1, NaN for x ≤ 1), `partialSum` adds smallest terms first, `tailBounds` gives the integral-test bounds on ζ − Sₙ. `src/zeta.js` draws both curves with the tail shaded between them; n's slider is logarithmic (n = 10^slider, 1…1000) while the number field, the source of truth, allows up to 10000.
 
-Shared helpers for 2D pages live in `src/pageUtils.js` (`svgEl`, `frame`/`axes`/`polyline`/`extent`/`robustExtent` for SVG charts, `num`, `constant`, `safe`, and `stateFromHash`/`writeHash` for URL state); `riemann.js` and `ftc.js` use them, while `exponential.js` and `zeta.js` still have their own copies.
+Shared helpers for 2D pages live in `src/pageUtils.js` (`svgEl`, `svgTex`, `frame`/`axes`/`polyline`/`extent`/`robustExtent` for SVG charts, `num` for plain-text numbers such as aria-labels, `constant`, `safe`, and `stateFromHash`/`writeHash` for URL state); `riemann.js` and `ftc.js` use them, while `exponential.js` and `zeta.js` still have their own copies of the chart and hash helpers.
+
+## Math typesetting (KaTeX)
+
+Every formula on every page is typeset with KaTeX (npm dependency, bundled by Vite with its fonts) through `src/tex.js`; don't write math with Unicode sub/superscripts or `<sup>`/`<sub>`.
+
+- Static HTML: write `\( … \)` (or `\[ … \]`); each page script calls `renderStatic()` once at startup (`index.html` has `src/index.js` just for this). Native `<option>` text can't hold markup, so preset names in `<select>`s stay Unicode.
+- Strings built in JS: `setTex(el, tex)` when the whole element is a formula (captions, readouts); `texText(prose)` for prose with inline `\( … \)` (explanations, `RULES[*].tag` in `integral.js`), which also keeps trailing punctuation on the formula's line; `tex(src)` for the raw HTML.
+- Numbers inside TeX: `texNum(v, digits)` (exponent form becomes `\cdot 10^{k}`) and `texSigned(v)` for "+ 2"/"- 2" after another term.
+- The user's own expression: `expressionToTex(source)` in `expression.js` (math.js `toTex`, falling back to `\texttt{…}`).
+- Labels inside SVG charts: `svgTex(parent, x, y, tex, { anchor, baseline, cls })` places a `<foreignObject>` with KaTeX HTML; color it with `.tex-label.<cls> > div { color: … }` (not `fill`). Axis tick numbers stay plain SVG text.
+- Exception: the 3D view's labels (axis names, ticks, slice-plane labels) are three.js canvas sprites in `plot.js` and stay plain text.
+- Tests: `src/tex.test.js`.
 
 To add a topic: create `<topic>.html` at the top level (`vite.config.js` picks up every top-level `*.html` as a build entry automatically), a `src/<topic>.js`, and a `src/<topic>.css` that starts with `@import './page.css';` for the shared 2D layout (header with a `.home` "← All topics" link, `#controls` panel, `#chart` figure, `#facts` list). Put pure math in its own DOM-free module with a `*.test.js`, keep state in the URL hash like the existing pages, and add a card to `index.html` and a line to the README.
 

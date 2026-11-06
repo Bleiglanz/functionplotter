@@ -53,3 +53,17 @@ export function compileFunction(source, variables = ['x', 'y']) {
   }
   return f;
 }
+
+/**
+ * TeX for a user expression, e.g. "x^2 - 1" → "{ x}^{2}-1", for typesetting with
+ * KaTeX. Input that doesn't parse is shown verbatim in typewriter type.
+ */
+export function expressionToTex(source) {
+  try {
+    // math.js writes implicit multiplication as "~" (a TeX space); a thin space reads better.
+    return parse(source).toTex({ implicit: 'hide' }).replaceAll('~', '\\,');
+  } catch {
+    const escaped = source.replace(/[\\{}$&#^_%~]/g, (c) => `\\char${c.charCodeAt(0)}`);
+    return `\\texttt{${escaped}}`;
+  }
+}

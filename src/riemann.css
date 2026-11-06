@@ -69,7 +69,7 @@ main {
 
 .field:first-child span {
   color: var(--text);
-  font: italic 15px Georgia, 'Times New Roman', serif;
+  font-size: 15px;
 }
 
 #expr {
@@ -89,7 +89,7 @@ main {
 }
 
 .count label {
-  font: italic 600 17px/1 Georgia, 'Times New Roman', serif;
+  font-size: 17px;
 }
 
 .rules legend {

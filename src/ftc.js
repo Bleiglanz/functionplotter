@@ -1,7 +1,8 @@
-import { compileFunction } from './expression.js';
+import { compileFunction, expressionToTex } from './expression.js';
+import { renderStatic, setTex, texNum as T, texSigned, texText } from './tex.js';
 import { niceTicks } from './format.js';
 import { RULES, riemannSum, integrate, antiderivative, partition } from './integral.js';
-import { svgEl, num, sub, sup, constant, safe, frame, axes, robustExtent, polyline, stateFromHash, writeHash } from './pageUtils.js';
+import { svgEl, svgTex, num, constant, safe, frame, axes, robustExtent, polyline, stateFromHash, writeHash } from './pageUtils.js';
 
 // Page for the fundamental theorem of calculus: below, f with the signed area
 // from a to b (and optionally Riemann rectangles); above, the area function
@@ -177,15 +178,17 @@ function drawF(m, cur) {
       d: `M${sx(b)},${sy(Fb)}L${corner[0]},${corner[1]}L${sx(b + h)},${clampY(sy(Fb + fb * h))}`,
       class: 'triangle',
     }, plot);
-    svgEl('text', { x: (sx(b) + corner[0]) / 2, y: corner[1] + (fb >= 0 ? 14 : -6), 'text-anchor': 'middle', class: 'triangle-label' }, plot)
-      .textContent = `${num(Math.abs(h))}`;
-    svgEl('text', {
-      x: corner[0] + (h > 0 ? 6 : -6),
-      y: (corner[1] + clampY(sy(Fb + fb * h))) / 2,
-      'text-anchor': h > 0 ? 'start' : 'end',
-      'dominant-baseline': 'middle',
-      class: 'triangle-label',
-    }, plot).textContent = `f(b)·${num(Math.abs(h))} = ${num(fb * Math.abs(h), 3)}`;
+    // Run below the horizontal leg when the tangent rises, above it when it falls.
+    svgTex(plot, (sx(b) + corner[0]) / 2, corner[1] + (fb >= 0 ? 3 : -3), `h = ${T(Math.abs(h))}`, {
+      anchor: 'middle',
+      baseline: fb >= 0 ? 'top' : 'bottom',
+      cls: 'triangle-label',
+    });
+    svgTex(plot, corner[0] + (h > 0 ? 6 : -6), (corner[1] + clampY(sy(Fb + fb * h))) / 2, `f(b)\\,h = ${T(fb * Math.abs(h), 3)}`, {
+      anchor: h > 0 ? 'start' : 'end',
+      baseline: 'middle',
+      cls: 'triangle-label',
+    });
   }
   if (cur.sum && Number.isFinite(cur.sum.sum)) {
     svgEl('circle', { cx: sx(b), cy: clampY(sy(cur.sum.sum)), r: 5, class: 'approx' }, plot);
@@ -257,8 +260,8 @@ function drawf(m, cur) {
   verticalAt(plot, box, sx(m.a), 'limit');
   verticalAt(plot, box, sx(b), 'cursor');
   svgEl('path', { d: polyline(m.xs.map((x, i) => [sx(x), sy(m.fs[i])]), clampY), class: 'curve' }, plot);
-  svgEl('text', { x: sx(m.a) + 4, y: MARGIN.top + 12, class: 'limit-label' }, plot).textContent = 'a';
-  svgEl('text', { x: sx(b) + 4, y: MARGIN.top + 12, class: 'cursor-label' }, plot).textContent = 'b';
+  svgTex(plot, sx(m.a) + 4, MARGIN.top + 2, 'a', { baseline: 'top', cls: 'limit-label' });
+  svgTex(plot, sx(b) + 4, MARGIN.top + 2, 'b', { baseline: 'top', cls: 'cursor-label' });
   if (Number.isFinite(cur.fb)) svgEl('circle', { cx: sx(b), cy: clampY(sy(cur.fb)), r: 5, class: 'dot' }, plot);
 
   fSvg.setAttribute('aria-label', `Graph of f with the signed area from a = ${num(m.a)} to b = ${num(b)} shaded`);
@@ -277,11 +280,11 @@ function xAt(svg, clientX) {
 
 function showHover(x) {
   if (!charts || x == null) {
-    $('hover').textContent = $('antiHover').textContent = '';
+    $('hover').innerHTML = $('antiHover').innerHTML = '';
     return;
   }
-  $('hover').textContent = `x ${num(x)}   f(x) ${num(safe(model.f, x))}`;
-  $('antiHover').textContent = `x ${num(x)}   F(x) ${num(integrate(model.f, model.a, x))}`;
+  setTex($('hover'), `x = ${T(x)} \\quad f(x) = ${T(safe(model.f, x))}`);
+  setTex($('antiHover'), `x = ${T(x)} \\quad F(x) = ${T(integrate(model.f, model.a, x))}`);
 }
 
 let dragging = null;
@@ -316,63 +319,70 @@ for (const svg of [antiSvg, fSvg]) {
 function facts(m, cur, state) {
   const { a } = m;
   const { b, Fb, fb, left, right, sum } = cur;
+  const off = sum ? (Math.abs(sum.sum - Fb) < 1e-9 * Math.max(1, Math.abs(Fb)) ? 0 : sum.sum - Fb) : 0;
   const items = [
     [
-      `F(x) = ∫${sub('a')}${sup('x')} f(t) dt`,
-      `The upper chart plots, for every x, the signed area under f from a = ${num(a)} to x. ` +
-        `So F(a) = 0, F rises where f &gt; 0 and falls where f &lt; 0.`,
+      `\\(F(x) = \\int_a^x f(t)\\,dt\\)`,
+      `The upper chart plots, for every \\(x\\), the signed area under \\(f\\) from \\(a = ${T(a)}\\) to \\(x\\). ` +
+        `So \\(F(a) = 0\\), and \\(F\\) rises where \\(f > 0\\) and falls where \\(f < 0\\).`,
     ],
   ];
   if (Number.isFinite(Fb)) {
     items.push([
-      `F(b) = ${num(Fb, 6)}`,
-      `The shaded area from a to b = ${num(b)}: the blue parts add, the orange parts subtract` +
-        (b < a ? ' (with b &lt; a the integral runs right to left, so the parts above the axis subtract).' : '.') +
+      `\\(F(b) = ${T(Fb, 6)}\\)`,
+      `The shaded area from \\(a\\) to \\(b = ${T(b)}\\): the blue parts add, the orange parts subtract` +
+        (b < a ? ' (with \\(b < a\\) the integral runs right to left, so the parts above the axis subtract).' : '.') +
         (sum && Number.isFinite(sum.sum)
-          ? ` The Riemann sum with n = ${state.n} ${RULES[state.rule].label.toLowerCase()} rectangles gives S${sub(state.n)} = ${num(sum.sum, 6)} ` +
-            `(the hollow circle above), off by ${num(Math.abs(sum.sum - Fb) < 1e-9 * Math.max(1, Math.abs(Fb)) ? 0 : sum.sum - Fb)}.`
+          ? ` The Riemann sum with \\(n = ${state.n}\\) ${RULES[state.rule].label.toLowerCase()} rectangles gives \\(S_{${state.n}} = ${T(sum.sum, 6)}\\) ` +
+            `(the hollow circle above), off by \\(${T(off)}\\).`
           : ''),
     ]);
   } else {
-    items.push(['F(b)', 'The integral from a to b does not exist numerically: f is undefined or unbounded somewhere between them.']);
+    items.push([
+      '\\(F(b)\\)',
+      'The integral from \\(a\\) to \\(b\\) does not exist numerically: \\(f\\) is undefined or unbounded somewhere between them.',
+    ]);
   }
   if (cur.corner) {
     items.push([
-      'A corner in F',
-      `f jumps at b, so F has a corner there: its slope from the left is ${num(left, 3)} and from the right ${num(right, 3)} (the two dashed half-lines). ` +
-        `The fundamental theorem needs f to be continuous at b; here F′(b) does not exist.`,
+      'A corner in \\(F\\)',
+      `\\(f\\) jumps at \\(b\\), so \\(F\\) has a corner there: its slope from the left is \\(${T(left, 3)}\\) and from the right \\(${T(right, 3)}\\) (the two dashed half-lines). ` +
+        `The fundamental theorem needs \\(f\\) to be continuous at \\(b\\); here \\(F'(b)\\) does not exist.`,
     ]);
   } else if (Number.isFinite(fb) && Number.isFinite(Fb)) {
+    const h = (m.xMax - m.xMin) * 1e-5;
     items.push(
       [
-        `F′(b) = f(b) = ${num(fb, 4)}`,
-        `The fundamental theorem of calculus: where f is continuous, F is differentiable with F′(x) = f(x). ` +
-          `So the tangent to F at (b, F(b)) has slope f(b), the height of the dot in the lower chart: ` +
-          `y = ${num(Fb, 4)} ${fb < 0 ? '−' : '+'} ${num(Math.abs(fb), 4)}·(x ${b < 0 ? '+' : '−'} ${num(Math.abs(b), 4)}). ` +
-          (Math.abs(fb) < 1e-9 ? 'Here f(b) = 0, so the tangent is horizontal: F is stationary at b.' : `F is ${fb > 0 ? 'increasing' : 'decreasing'} at b.`),
+        `\\(F'(b) = f(b) = ${T(fb, 4)}\\)`,
+        `The fundamental theorem of calculus: where \\(f\\) is continuous, \\(F\\) is differentiable with \\(F'(x) = f(x)\\). ` +
+          `So the tangent to \\(F\\) at \\((b, F(b))\\) has slope \\(f(b)\\), the height of the dot in the lower chart: ` +
+          `\\(y = ${T(Fb, 4)} ${texSigned(fb, 4)}\\,(x ${texSigned(-b, 4)})\\). ` +
+          (Math.abs(fb) < 1e-9
+            ? 'Here \\(f(b) = 0\\), so the tangent is horizontal: \\(F\\) is stationary at \\(b\\).'
+            : `\\(F\\) is ${fb > 0 ? 'increasing' : 'decreasing'} at \\(b\\).`),
       ],
       [
         'Why',
-        `Moving b to b + h adds a thin strip of width h whose height is about f(b), so F(b + h) − F(b) ≈ f(b)·h. ` +
-          `Dividing by h and letting h → 0 gives F′(b) = f(b). Numerically, with h = ${num((m.xMax - m.xMin) * 1e-5)}: ` +
-          `(F(b + h) − F(b))/h = ${num(right, 6)}.`,
+        `Moving \\(b\\) to \\(b + h\\) adds a thin strip of width \\(h\\) whose height is about \\(f(b)\\), so \\(F(b + h) - F(b) \\approx f(b)\\,h\\). ` +
+          `Dividing by \\(h\\) and letting \\(h \\to 0\\) gives \\(F'(b) = f(b)\\). Numerically, with \\(h = ${T(h)}\\): ` +
+          `\\(\\frac{F(b + h) - F(b)}{h} = ${T(right, 6)}\\).`,
       ],
     );
   } else {
-    items.push(['F′(b)', 'f is undefined at b, so there is no tangent to draw.']);
+    items.push(["\\(F'(b)\\)", '\\(f\\) is undefined at \\(b\\), so there is no tangent to draw.']);
   }
   items.push([
-    `∫${sub('a')}${sup('b')} f = G(b) − G(a)`,
-    `The second half of the theorem: any antiderivative G (G′ = f) differs from F by a constant, ` +
-      `so the integral is G(b) − G(a). Changing a only shifts F up or down.`,
+    '\\(\\int_a^b f = G(b) - G(a)\\)',
+    `The second half of the theorem: any antiderivative \\(G\\) (\\(G' = f\\)) differs from \\(F\\) by a constant, ` +
+      `so the integral is \\(G(b) - G(a)\\). Changing \\(a\\) only shifts \\(F\\) up or down.`,
   ]);
   const list = document.querySelector('#facts dl');
   list.replaceChildren();
   for (const [term, text] of items) {
     const dt = document.createElement('dt');
-    dt.innerHTML = term;
+    dt.innerHTML = texText(term);
     const dd = document.createElement('dd');
-    dd.innerHTML = text;
+    dd.innerHTML = texText(text);
     list.append(dt, dd);
   }
 }
@@ -383,7 +393,7 @@ function update() {
   const state = readForm();
   const m = getModel(state);
   $('status').textContent = m.error ?? '';
-  for (const id of ['formula', 'antiFormula']) $(id).textContent = '';
+  for (const id of ['formula', 'antiFormula']) $(id).innerHTML = '';
   if (m.error) {
     charts = null;
     frame(antiSvg, MARGIN);
@@ -402,8 +412,8 @@ function update() {
   }
   bSlider.value = cur.b;
   fields.b.step = step;
-  $('antiFormula').innerHTML = `F(x) = ∫${sub(num(m.a))}${sup('x')} f(t) dt`;
-  $('formula').innerHTML = `f(x) = ${state.expr.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c])}`;
+  setTex($('antiFormula'), `F(x) = \\int_{${expressionToTex(state.a)}}^{x} f(t)\\,dt`);
+  setTex($('formula'), `f(x) = ${expressionToTex(state.expr)}`);
   charts = { F: drawF(m, cur), f: drawf(m, cur) };
   facts(m, cur, state);
   writeHash(state);
@@ -419,7 +429,7 @@ let sweep = null;
 function stopSweep() {
   if (sweep) cancelAnimationFrame(sweep);
   sweep = null;
-  $('play').textContent = '▶ Sweep b across the view';
+  $('play').innerHTML = texText('▶ Sweep \\(b\\) across the view');
   $('play').setAttribute('aria-pressed', 'false');
 }
 $('play').addEventListener('click', () => {
@@ -469,5 +479,6 @@ const resize = new ResizeObserver(() => update());
 resize.observe(antiSvg);
 resize.observe(fSvg);
 
+renderStatic();
 writeForm(loadState());
 update();

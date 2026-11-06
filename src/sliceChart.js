@@ -1,4 +1,5 @@
 import { formatNumber as fmt, niceTicks } from './format.js';
+import { setTex, texNum as T } from './tex.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const MARGIN = { top: 8, right: 12, bottom: 22, left: 44 };
@@ -48,7 +49,7 @@ export class SliceChart {
     if (!data) return;
     const v = fmt(data.value);
     this.free = data.axis === 'y' ? 'x' : 'y';
-    this.title.textContent = data.axis === 'y' ? `f(x, ${v})` : `f(${v}, y)`;
+    setTex(this.title, data.axis === 'y' ? `f(x, ${T(data.value)})` : `f(${T(data.value)}, y)`);
     this.svg.setAttribute(
       'aria-label',
       `Graph of f with ${data.axis} = ${v}, for ${this.free} from ${fmt(data.tMin)} to ${fmt(data.tMax)}`,
@@ -124,7 +125,7 @@ export class SliceChart {
     if (!this.crosshair) return;
     if (i == null || !this.data) {
       this.crosshair.setAttribute('visibility', 'hidden');
-      this.value.textContent = '';
+      this.value.innerHTML = '';
       this.onHover(null);
       return;
     }
@@ -139,7 +140,7 @@ export class SliceChart {
       this.dot.setAttribute('cx', px);
       this.dot.setAttribute('cy', this.yScale(z));
     }
-    this.value.textContent = `${this.free} ${fmt(t)}  f ${defined ? fmt(z) : 'undefined'}`;
+    setTex(this.value, `${this.free} = ${T(t)} \\quad f = ${T(z)}`);
     this.onHover(defined ? t : null, z);
   }
 }

@@ -12,7 +12,7 @@
     <form id="panel" autocomplete="off">
       <div class="expr">
         <div class="expr-head">
-          <label for="expr">f(x, y) =</label>
+          <label for="expr">\(f(x, y) =\)</label>
           <button id="panelToggle" class="panel-toggle" type="button" aria-expanded="true" aria-controls="panelBody">
             Controls
             <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" /></svg>
@@ -30,13 +30,13 @@
         </label>
 
         <fieldset class="range">
-          <legend>x</legend>
+          <legend>\(x\)</legend>
           <input id="xMin" type="number" step="any" aria-label="x min" />
           <span>to</span>
           <input id="xMax" type="number" step="any" aria-label="x max" />
         </fieldset>
         <fieldset class="range">
-          <legend>y</legend>
+          <legend>\(y\)</legend>
           <input id="yMin" type="number" step="any" aria-label="y min" />
           <span>to</span>
           <input id="yMax" type="number" step="any" aria-label="y max" />
@@ -48,12 +48,12 @@
         </label>
 
         <div class="checks">
-          <label><input id="fitZ" type="checkbox" /> Fit z to view</label>
+          <label><input id="fitZ" type="checkbox" /> Fit \(z\) to view</label>
           <label><input id="meshLines" type="checkbox" /> Mesh lines</label>
         </div>
 
         <fieldset class="slice" data-axis="x">
-          <label><input id="sliceX" type="checkbox" /> Slice at x = x₀</label>
+          <label><input id="sliceX" type="checkbox" /> Slice at \(x = x_0\)</label>
           <div id="sliceXControls" class="slice-controls">
             <input id="x0Slider" type="range" aria-label="x₀ slider" />
             <input id="x0" type="number" step="any" aria-label="x₀" />
@@ -61,7 +61,7 @@
         </fieldset>
 
         <fieldset class="slice" data-axis="y">
-          <label><input id="sliceY" type="checkbox" /> Slice at y = y₀</label>
+          <label><input id="sliceY" type="checkbox" /> Slice at \(y = y_0\)</label>
           <div id="sliceYControls" class="slice-controls">
             <input id="y0Slider" type="range" aria-label="y₀ slider" />
             <input id="y0" type="number" step="any" aria-label="y₀" />
@@ -82,7 +82,7 @@
           <span id="tangentPoint"></span>
           <button id="clearTangent" type="button">Clear</button>
         </div>
-        <code id="tangentEq"></code>
+        <p id="tangentEq"></p>
         <p id="geodesicInfo"></p>
         <p id="accelInfo" hidden></p>
       </div>
