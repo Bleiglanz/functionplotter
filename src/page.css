@@ -65,6 +65,7 @@ main {
 
 #controls,
 #chart,
+.chart-figure,
 #facts {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -80,6 +81,12 @@ main {
 
 #chart {
   grid-area: chart;
+}
+
+/* The main #chart and any extra chart figures (class chart-figure) share
+   their look; grid placement and svg height stay per page. */
+#chart,
+.chart-figure {
   margin: 0;
 }
 
@@ -158,7 +165,8 @@ fieldset {
 
 /* --- Chart ------------------------------------------------------------------ */
 
-#chart figcaption {
+#chart figcaption,
+.chart-figure figcaption {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -177,16 +185,21 @@ fieldset {
   white-space: pre;
 }
 
-#chart svg {
+#chart svg,
+.chart-figure svg {
   display: block;
   width: 100%;
-  height: min(60vh, 520px);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   touch-action: none;
 }
 
-#chart svg:focus-visible {
+#chart svg {
+  height: min(60vh, 520px);
+}
+
+#chart svg:focus-visible,
+.chart-figure svg:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;

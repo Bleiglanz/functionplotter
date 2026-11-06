@@ -121,11 +121,14 @@ export function polyline(points, clampY) {
 }
 
 /**
- * Page state from the URL hash. DEFAULTS defines the keys and their types
- * (boolean as 1/0, number, or string); unknown or invalid values keep the default.
+ * Page state from a URL hash such as '#n=8&band=1'. `defaults` defines the
+ * keys and their types: a boolean is true only for '1'; a number takes the
+ * value when it is finite (so an empty value reads as 0) and otherwise keeps
+ * the default; a string takes the text. Keys not in `defaults` are ignored.
+ * Shared links depend on this behaviour; the tests pin it.
  */
-export function stateFromHash(defaults) {
-  const params = new URLSearchParams(location.hash.slice(1));
+export function parseHash(hash, defaults) {
+  const params = new URLSearchParams(hash.slice(1));
   const state = { ...defaults };
   for (const key of Object.keys(defaults)) {
     if (!params.has(key)) continue;
@@ -137,10 +140,21 @@ export function stateFromHash(defaults) {
   return state;
 }
 
-export function writeHash(state) {
+/** The hash string (without '#') for a state: booleans as 1/0, everything else as text. */
+export function serializeHash(state) {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(state)) {
     params.set(key, typeof value === 'boolean' ? (value ? '1' : '0') : String(value));
   }
-  history.replaceState(null, '', '#' + params);
+  return params.toString();
+}
+
+/** The page state from the current URL hash (see parseHash). */
+export function stateFromHash(defaults) {
+  return parseHash(location.hash, defaults);
+}
+
+/** Mirrors the state into the URL hash without adding a history entry. */
+export function writeHash(state) {
+  history.replaceState(null, '', '#' + serializeHash(state));
 }
