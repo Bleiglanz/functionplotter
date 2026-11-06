@@ -67,3 +67,12 @@ export function expressionToTex(source) {
     return `\\texttt{${escaped}}`;
   }
 }
+
+/** Evaluates a constant expression such as "pi/2"; errors are prefixed with `name`. */
+export function constant(source, name) {
+  try {
+    return compileFunction(source, [])();
+  } catch (err) {
+    throw new Error(`${name}: ${err.message}`);
+  }
+}

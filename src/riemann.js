@@ -1,7 +1,7 @@
-import { compileFunction, expressionToTex } from './expression.js';
+import { compileFunction, constant, expressionToTex } from './expression.js';
 import { formatNumber as fmt, niceTicks } from './format.js';
 import { renderStatic, setTex, tex, texNum as T, texText } from './tex.js';
-import { svgEl, constant, frame, axes, extent, polyline, stateFromHash as readHash, writeHash } from './pageUtils.js';
+import { svgEl, frame, axes, extent, polyline, stateFromHash as readHash, writeHash } from './pageUtils.js';
 import { RULES, EXTREMUM_SAMPLES, riemannSum, sums, bounds, integrate } from './integral.js';
 
 // Page showing how ∫ₐᵇ f arises from Riemann sums over equidistant partitions:

@@ -1,8 +1,8 @@
-import { compileFunction, expressionToTex } from './expression.js';
+import { compileFunction, constant, expressionToTex } from './expression.js';
 import { renderStatic, setTex, texNum as T, texSigned, texText } from './tex.js';
 import { niceTicks } from './format.js';
 import { RULES, riemannSum, integrate, antiderivative, partition } from './integral.js';
-import { svgEl, svgTex, num, constant, safe, frame, axes, robustExtent, polyline, stateFromHash, writeHash } from './pageUtils.js';
+import { svgEl, svgTex, num, safe, frame, axes, robustExtent, polyline, stateFromHash, writeHash } from './pageUtils.js';
 
 // Page for the fundamental theorem of calculus: below, f with the signed area
 // from a to b (and optionally Riemann rectangles); above, the area function

@@ -1,4 +1,3 @@
-import { compileFunction } from './expression.js';
 import { formatNumber as fmt, niceTicks } from './format.js';
 import { tex } from './tex.js';
 
@@ -37,14 +36,6 @@ export function svgTex(parent, x, y, src, { anchor = 'start', baseline = 'bottom
   return fo;
 }
 
-/** Evaluates a constant expression such as "pi/2"; errors are prefixed with `name`. */
-export function constant(source, name) {
-  try {
-    return compileFunction(source, [])();
-  } catch (err) {
-    throw new Error(`${name}: ${err.message}`);
-  }
-}
 
 /** Calls f, turning thrown errors and non-finite values into NaN. */
 export function safe(f, x) {
