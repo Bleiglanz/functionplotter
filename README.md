@@ -3,17 +3,21 @@
 A collection of interactive math visualizations for selected topics, one page
 each, linked from a landing page. Formulas are typeset with [KaTeX](https://katex.org):
 
-- **Surfaces z = f(x, y)** (`surface.html`): a 3D plotter built with
+- **Surfaces $z = f(x, y)$** (`surface.html`): a 3D plotter built with
   [three.js](https://threejs.org) and [math.js](https://mathjs.org). Type an
   expression, orbit the surface, slice it, and explore its differential geometry:
   tangent planes, unit tangent vectors and the geodesics they start.
-- **Riemann sums** (`riemann.html`): how ∫ₐᵇ f(x) dx arises from sums over
+- **Riemann sums** (`riemann.html`): how $\int_a^b f(x)\,dx$ arises from sums over
   equidistant partitions.
-- **Exponential functions** (`exponential.html`): f(x) = a·e<sup>bx+c</sup> + d.
-- **Fundamental theorem of calculus** (`ftc.html`): f with the signed area from a
-  to a draggable b, and above it F(x) = ∫ₐˣ f with its tangent at b, of slope f(b).
-- **Riemann zeta function** (`zeta.html`): ζ(x) for real x > 1 with the partial
-  sums Σ<sub>k=1</sub><sup>n</sup> 1/k<sup>x</sup> and a (logarithmic) slider for n.
+- **Exponential functions** (`exponential.html`): sliders for $a$, $b$, $c$ and $d$ in
+  $f(x) = a\,e^{bx+c} + d$ (a slider turns orange while its value is negative),
+  a chart whose hover shows the tangent (it always meets the asymptote $y = d$
+  $1/b$ away), and the properties that follow: $y$-intercept, growth or decay with
+  doubling time / half-life, asymptote, range, zeros, convexity and inverse.
+- **Fundamental theorem of calculus** (`ftc.html`): $f$ with the signed area from $a$
+  to a draggable $b$, and above it $F(x) = \int_a^x f$ with its tangent at $b$, of slope $f(b)$.
+- **Riemann zeta function** (`zeta.html`): $\zeta(x)$ for real $x > 1$ with the partial
+  sums $\sum_{k=1}^{n} 1/k^x$ and a (logarithmic) slider for $n$.
 
 ## Riemann sums
 
@@ -21,7 +25,7 @@ Enter f(x), an interval a < b (numbers or expressions such as `pi/2`) and the
 number n of subintervals, and choose where each rectangle samples f: left,
 midpoint or right endpoint, or the infimum/supremum (lower/upper Darboux sums).
 The page shows the rectangles (hover one for its numbers), a second chart of
-Sₙ against n inside the band between lower and upper sums, converging to the
+$S_n$ against $n$ inside the band between lower and upper sums, converging to the
 integral (click it to jump to an n), and an explanation with the error and how
 fast it shrinks. "Animate" runs n from 1 to 200. Examples include signed area
 (sin on [0, 2π]), ln as ∫ 1/x, and π/2 as the area of a half disc.
@@ -45,11 +49,6 @@ fast it shrinks. "Animate" runs n from 1 to 200. Examples include signed area
   Click the geodesic to see its acceleration vector there (in green): it is
   normal to the surface, and its length is the normal curvature. It is drawn
   at 10× its length so it stays visible.
-- **Exponential functions page** (`exponential.html`): sliders for a, b, c and d in
-  f(x) = a·e<sup>bx+c</sup> + d (a slider turns orange while its value is negative),
-  a chart whose hover shows the tangent (it always meets the asymptote y = d 1/b
-  away), and the properties that follow: y-intercept, growth or decay with doubling
-  time / half-life, asymptote, range, zeros, convexity and inverse.
 - **Shareable URLs**: the expression, domain and settings are kept in the URL
   hash, so a link reproduces the plot.
 - Light and dark themes, and a collapsible panel on small screens.
@@ -95,13 +94,19 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/integral.js` | Pure math for Riemann sums: partitions, sums, reference integral |
 | `src/riemann.js` | Riemann sums page |
 | `src/exponential.js` | Exponential functions page |
+| `src/exponentialMath.js` | Pure math for the exponential page |
 | `src/ftc.js` | Fundamental theorem page |
 | `src/tex.js` | KaTeX helpers used for every formula on every page |
-| `src/pageUtils.js` | Chart, number and URL-hash helpers shared by the 2D pages |
+| `src/pageUtils.js` | Chart, number and URL-hash helpers shared by the pages |
+| `src/pageUtils.test.js` | Hash-parser tests, including one saved link per page |
+| `src/pages.test.js` | Static check of the page contract (HTML, scripts, styles) |
 | `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
 | `src/zeta.js` | Riemann zeta page |
 
-Each topic is a top-level HTML file; Vite builds every one automatically.
+Each topic is a top-level HTML file; Vite builds every one automatically. The
+rules every page follows are in [AGENTS.md](AGENTS.md) ("Page contract"); the
+planned topics and the reasons behind the project's main decisions are in
+[specs/roadmap-and-page-contract.md](specs/roadmap-and-page-contract.md).
 
 Live version: https://bleiglanz.github.io/functionplotter/ (deployed from `master` by GitHub Actions on every push).
 
