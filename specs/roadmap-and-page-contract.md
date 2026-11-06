@@ -20,9 +20,11 @@ This document does two things:
     the rule for when a topic earns its own page, and the reasons behind the
     project's main decisions. It is written for the owner and for AI agents
     who add pages.
-2.  **It plans the one-off conformance work** that makes the five existing
+2.  **It planned the one-off conformance work** that made the five existing
     pages follow the same rules as new pages, without breaking any link that
-    has already been shared.
+    had already been shared. That work is done (commits `e400766` to the
+    cleanup commit); its plan was removed from this document and remains in
+    the git history and the review reports in `specs/`.
 
 `AGENTS.md` stays the authoritative description of how a page is built. This
 document says what comes next and why, and refers to the rules in `AGENTS.md`
@@ -173,16 +175,8 @@ working, and record the roadmap and the decisions in this spec.
 *   **Then**: They see the same view as before: same page, same values, same
     clamping. The old surface-plotter link is still forwarded to
     `surface.html`. "Same view" means the same controls and values; axis
-    tick labels may change (see the exponential and zeta conformance work).
-
-### CUJ 3: The owner brings one existing page in line
-
-*   **Given**: A page with copied helpers (for example `zeta.js`).
-*   **When**: The owner or an agent works through that page's conformance
-    steps.
-*   **Then**: One commit changes one page or one shared module; `npm test`
-    passes, including that page's hash fixture; the owner runs the checklist
-    for the touched pages. Rollback is `git revert` of that commit.
+    tick labels may change (on the exponential and zeta pages they switched to a
+    real minus sign).
 
 ## Technical Plan (Architecture)
 
@@ -196,7 +190,7 @@ working, and record the roadmap and the decisions in this spec.
  │    (what each page must do,          │   │  - manual checklist              │
  │     and how each rule is checked)    │   │  - topic roadmap                 │
  │  - architecture and current state    │   │  - decision records D1…          │
- │  - 2 mandatory pointers ─────────────┼──▶│  - conformance plan (temporary)  │
+ │  - 2 mandatory pointers ─────────────┼──▶│                                  │
  └──────────────────────────────────────┘   └──────────────────────────────────┘
           ▲ rules referenced by number, never copied ◀──┘
 ```
@@ -243,7 +237,7 @@ picture shows the concept, drop it from the roadmap.
 ### Topic roadmap
 
 An entry is deleted when its page ships. Suggested order (not decided, Q3):
-(a) conformance work first; (b) secant derivative, Taylor polynomials,
+(a) conformance work (done); (b) secant derivative, Taylor polynomials,
 sequences, ε–δ (reuse the SVG helpers); (c) linear maps, eigenvectors;
 (d) Fourier series, ODE direction fields, central limit theorem, complex
 functions (need new infrastructure).
@@ -308,55 +302,6 @@ hash fixtures in `npm test`, not by this list.
     they get copied.
 *   **D6. "Offline" means bundled assets only.** No service worker or
     installable app; the page makes no network requests while running.
-
-### Conformance work: module changes
-
-```text
- before                                     after
- ──────                                     ─────
- pageUtils.js ─ hash, svg, chart helpers    pageUtils.js ─ hash (parseHash, serializeHash,
-   (constant() already moved out, 62c9a53)    stateFromHash, writeHash), svg, chart helpers
- exponential.js ─ own hash, svgEl,          exponentialMath.js ─ numbers for a·e^(bx+c)+d (tested)
-   axes, ticks, inline math                 exponential.js, zeta.js, main.js, sliceChart.js
- zeta.js ─ own hash, svgEl, axes, ticks       ─ import the shared helpers; no local copies
- main.js ─ own hash
- sliceChart.js ─ own svgEl
-```
-
-*   **Hash parser, in `src/pageUtils.js`:** `parseHash(hash, defaults)` and
-    `serializeHash(state)` are the current `stateFromHash`/`writeHash` code
-    of `pageUtils.js`, moved unchanged into two functions that take and
-    return strings instead of touching `location`. `stateFromHash` and
-    `writeHash` stay as thin wrappers over them. The four existing copies
-    differ in form but give the same result for each page's own settings:
-    zeta's reads every value as a number, which works because all its
-    settings are numbers; exponential's has no string branch because it has
-    no string settings. So moving every page onto the shared parser changes
-    no URL.
-*   **`src/exponentialMath.js` (new, pure):** the numbers the exponential page
-    shows (value, slope, scale a·eᶜ, shift, zero, doubling time or
-    half-life, tangent foot on the asymptote). The page's `properties()`
-    keeps building the explanation text but takes its numbers from here.
-*   **Page scripts:** `exponential.js` and `zeta.js` drop their local
-    `svgEl`, axis and tick code and use `frame`/`axes`/`polyline`. That also
-    fixes their tick labels, which use a hyphen instead of a minus sign, and
-    their clip path id, which is fixed as `plotArea` instead of derived from
-    the figure. `main.js` and `sliceChart.js` drop their local hash and
-    `svgEl` copies. Page-specific clamping (`clampN`, rule validation) stays
-    in each page as a wrapper with any name.
-*   **Static page check (`src/pages.test.js`, new):** added after the last
-    page commit, so it passes on its first run; see target file 14.
-*   **One page or one shared module per commit.**
-
-### Conformance plan (temporary; deleted in the cleanup commit)
-
-| Page | Work |
-| :--- | :--- |
-| exponential | shared hash, svg and chart helpers; `exponentialMath.js` with tests |
-| zeta | shared hash, svg and chart helpers |
-| surface | shared hash parser in `main.js`, shared `svgEl` in `sliceChart.js` |
-| riemann | extra figure uses `chart-figure` class |
-| ftc | extra figure uses `chart-figure` class |
 
 ## Alternatives Considered
 
@@ -448,261 +393,6 @@ hash fixtures in `npm test`, not by this list.
 *   **Reason for Rejection**: The bookkeeping costs more than the few commits
     of protection; the check is added after the last page commit and passes
     on its first run (decided by the author).
-
---------------------------------------------------------------------------------
-
-## Non-Functional Requirements
-
-*   **Backward compatibility (critical):** every URL that worked before must
-    open the same view after (G5, U6). Guarded by the hash fixtures in
-    `src/pageUtils.test.js`.
-*   **Size:** pages that parse no user expression (exponential, zeta) must not
-    load the math.js chunk. This was fixed in commit `62c9a53`, which moved
-    `constant()` from `pageUtils.js` to `expression.js`; `src/pages.test.js`
-    keeps it from coming back (U9).
-*   **Rollout and rollback:** every push to `master` deploys, so each
-    conformance step is one commit that passes `npm test` and `npm run build`
-    before it is pushed. Rollback is `git revert <commit>` and a push.
-
---------------------------------------------------------------------------------
-
-## Detailed Implementation Plan
-
-Every commit follows the same procedure: `npm test` passes, `npm run build`
-passes, the owner runs the manual checklist for the pages it touched (all
-pages after a shared-module change), then it is pushed. An agent doing the
-work stops after `npm test` and `npm run build` and lists the checklist steps
-for the owner. Pages are referred to by file stem (`exponential` for
-`exponential.html`).
-
-### Commit order
-
-1.  Documents: the contract and pointers in `AGENTS.md`; this spec set to
-    Approved, with the rule table replaced by a pointer.
-2.  Shared modules: `parseHash`/`serializeHash` in `pageUtils.js` with
-    `src/pageUtils.test.js`; `.chart-figure` in `page.css`.
-3.  exponential.
-4.  zeta.
-5.  surface.
-6.  riemann.
-7.  ftc.
-8.  Static page check `src/pages.test.js` (passes on its first run).
-9.  README fixes.
-10. Cleanup: delete the conformance parts of this spec and the "still have
-    their own copies" clause in `AGENTS.md`.
-
-### Target Files to Create/Modify
-
-#### 1. `specs/roadmap-and-page-contract.md` (Modify; commits 1 and 10)
-
-*   **Type / Scope**: Documentation (this document).
-*   **Proposed Changes**:
-    *   Commit 1: Status becomes Approved. The "Proposed contract" table is
-        replaced by one line: "The page contract (U1–U10, P1–P5) is in
-        `AGENTS.md`."
-    *   Commit 10: delete these headings and their content: "CUJ 3: The owner
-        brings one existing page in line", "Conformance work: module
-        changes", "Conformance plan (temporary; deleted in the cleanup
-        commit)", "Non-Functional Requirements" and "Detailed Implementation
-        Plan". Everything else stays.
-
-#### 2. `AGENTS.md` (Modify; commits 1–8 and 10)
-
-*   **Type / Scope**: Documentation (authoritative contract).
-*   **Proposed Changes**:
-    *   Commit 1: replace the "To add a topic" paragraph with the rule table
-        (U1–U10, P1–P5, with check types and the surface plotter's named
-        exceptions) and a short procedure: apply the admission rule, build
-        from the shared modules, add a hash fixture, pass `npm test`, list
-        the checklist for the owner. Add the two mandatory pointers to the
-        "Specs and reviews" section (wording in "Which document holds
-        what"). In line 18, remove `constant` from the list of
-        `pageUtils.js` helpers (it moved to `expression.js` in `62c9a53`)
-        and add it to the `expression.js` description. Rules are described
-        without naming modules that don't exist yet.
-    *   Commit 2: describe `parseHash`/`serializeHash` and `.chart-figure`.
-    *   Commits 3–7: update each page's paragraph when it changes (for
-        example `exponentialMath.js` for the exponential page).
-    *   Commit 8: mention `src/pages.test.js` under Commands.
-    *   Commit 10: delete the clause "while `exponential.js` and `zeta.js`
-        still have their own copies of the chart and hash helpers" from line
-        18; the rest of the sentence stays.
-
-#### 3. `src/pageUtils.js` (Modify; commit 2)
-
-*   **Type / Scope**: Shared 2D helpers.
-*   **Proposed Changes**: Split the current `stateFromHash`/`writeHash` code,
-    unchanged in behaviour, into `parseHash(hash, defaults)` (takes the hash
-    string including its leading `#`, returns the state) and
-    `serializeHash(state)` (returns the string without `#`).
-    `stateFromHash(defaults)` becomes `parseHash(location.hash, defaults)`;
-    `writeHash(state)` becomes
-    `history.replaceState(null, '', '#' + serializeHash(state))`.
-
-#### 4. `src/pageUtils.test.js` (Create; commit 2)
-
-*   **Type / Scope**: Vitest unit tests.
-*   **Proposed Changes**:
-    *   Each page's `DEFAULTS` is copied literally into the test, with a
-        comment naming the source file (the page scripts touch the DOM and
-        cannot be imported).
-    *   Round trip for each page: `parseHash('#' + serializeHash(d), d)`
-        equals `d`.
-    *   One fixture per page (the old URLs to protect), each with its
-        expected state:
-        *   exponential `#a=-2&b=-0.5&c=1&d=3&xMin=-4&xMax=4&yMin=-2&yMax=8&showRef=1`
-            → `{ a: -2, b: -0.5, c: 1, d: 3, xMin: -4, xMax: 4, yMin: -2, yMax: 8, showRef: true }`
-        *   zeta `#n=100&xMax=6&yMax=5` → `{ n: 100, xMax: 6, yMax: 5 }`
-        *   surface `#expr=sin(x)%2Bcos(y)&sliceX=1&sliceY=1` → the surface
-            defaults with `expr: 'sin(x)+cos(y)'`, `sliceX: true`,
-            `sliceY: true`
-        *   riemann `#expr=x%5E2&a=0&b=2&n=50&rule=left&band=1` →
-            `{ expr: 'x^2', a: '0', b: '2', n: 50, rule: 'left', band: true }`
-        *   ftc `#expr=cos%28x%29&a=0&xMin=-1&xMax=7&b=2&n=8&rule=midpoint&rects=0`
-            → `{ expr: 'cos(x)', a: '0', xMin: '-1', xMax: '7', b: 2, n: 8, rule: 'midpoint', rects: false }`
-    *   Broken values behave as today: `n=abc` keeps the default; `xMax=`
-        reads as `0`; `showRef=abc` reads as `false`; unknown keys are
-        ignored.
-    *   `extent([1, 3], 0)` is `[0 − 0.24, 3 + 0.24]` (8 % padding including
-        the extra value); `robustExtent` of 199 values in [0, 1] plus one
-        value 1e9 stays within [−1, 2].
-
-#### 5. `src/page.css` (Modify; commit 2)
-
-*   **Type / Scope**: Shared 2D stylesheet.
-*   **Proposed Changes**: Add `.chart-figure` next to `#chart` in the rules
-    for the panel box (background, border, radius, padding), `margin: 0`,
-    the `figcaption` flex layout, the `svg` display, width and font, and
-    `svg:focus-visible`. Grid placement and svg height stay per page.
-
-#### 6. `src/exponentialMath.js` (Create; commit 3)
-
-*   **Type / Scope**: Pure JavaScript module.
-*   **Proposed Changes**: Functions of `p = { a, b, c, d }` for
-    f(x) = a·e^(bx+c) + d:
-    *   `value(p, x)` = f(x); `slope(p, x)` = b·(f(x) − d).
-    *   `scale(p)` = a·eᶜ; `yIntercept(p)` = a·eᶜ + d.
-    *   `shift(p)` = −c/b, `null` when b = 0.
-    *   `zero(p)` = (ln(−d/a) − c)/b when a ≠ 0, b ≠ 0 and −d/a > 0;
-        otherwise `null`.
-    *   `factorTwoDistance(p)` = ln 2/|b|, `null` when b = 0 (doubling time
-        when b > 0, half-life when b < 0).
-    *   `tangentFoot(p, x)` = x − 1/b, where the tangent at x meets y = d;
-        `null` when b = 0.
-
-#### 7. `src/exponentialMath.test.js` (Create; commit 3)
-
-*   **Type / Scope**: Vitest unit tests, tolerance 1e−12.
-*   **Proposed Changes**: For a = 1, b = 1, c = 0, d = 0 at x = 0: value 1,
-    slope 1, tangent foot −1, factor-two distance ln 2. For a = −2, b = −0.5,
-    c = 1, d = 3: zero ≈ 1.18906 and `value(p, zero(p))` = 0. For a = 0:
-    `zero` is `null`. For b = 0: `shift`, `tangentFoot` and
-    `factorTwoDistance` are `null`.
-
-#### 8. `src/exponential.js` (Modify; commit 3)
-
-*   **Type / Scope**: Page script.
-*   **Proposed Changes**: Use `stateFromHash`/`writeHash`, `svgEl`, `svgTex`,
-    `frame`, `axes`, `polyline` from `pageUtils.js`; delete the local
-    copies, the inline tick code and the fixed `plotArea` clip id. Take the
-    numbers in `draw()`, `showHover()` and `properties()` from
-    `exponentialMath.js`. Keep the local `num` and `signed` only for the
-    chart's aria-label. Visible changes: tick labels use a minus sign; the
-    y axis uses `axes`' tick count (5 instead of 6); x ticks stay at 8.
-
-#### 9. `src/zeta.js` (Modify; commit 4)
-
-*   **Type / Scope**: Page script.
-*   **Proposed Changes**: Same helper replacement as exponential. `clampN`
-    stays in a wrapper around `stateFromHash`. The shaded tail band keeps
-    its own closed path (it is not a copied helper). Same tick changes as
-    exponential.
-
-#### 10. `src/main.js` (Modify; commit 5)
-
-*   **Type / Scope**: Surface plotter script.
-*   **Proposed Changes**: Replace the local `stateFromHash`/`writeHash` with
-    imports from `pageUtils.js`, passing `DEFAULTS`. The `panelCollapsed`
-    `localStorage` entry stays (named exception).
-
-#### 11. `src/sliceChart.js` (Modify; commit 5)
-
-*   **Type / Scope**: Surface plotter inset charts.
-*   **Proposed Changes**: Import `svgEl` from `pageUtils.js`; delete the
-    local copy. Its tick labels keep their hyphens (accepted under the
-    surface exception).
-
-#### 12. `riemann.html`, `src/riemann.css` (Modify; commit 6)
-
-*   **Type / Scope**: Page markup and styles.
-*   **Proposed Changes**: Add `class="chart-figure"` to `#convergence`;
-    delete the `#convergence` rules that `.chart-figure` now covers; keep its
-    `grid-area`, its 220 px svg height and `cursor: pointer`.
-
-#### 13. `ftc.html`, `src/ftc.css` (Modify; commit 7)
-
-*   **Type / Scope**: Page markup and styles.
-*   **Proposed Changes**: Add `class="chart-figure"` to `#antiChart`; split
-    the combined `#chart svg, #antiChart svg` rule; delete what
-    `.chart-figure` covers; keep its `grid-area`, its `min(36vh, 320px)` svg
-    height, `cursor: ew-resize` and the readout styles.
-
-#### 14. `src/pages.test.js` (Create; commit 8)
-
-*   **Type / Scope**: Vitest static check, Node `fs` only, no browser.
-*   **Proposed Changes**: The repository root is
-    `new URL('..', import.meta.url)`; paths like `/src/x.js` in the HTML map
-    to `src/x.js`. Pages are the top-level `*.html` files except
-    `index.html`. For each page:
-    *   U2: `index.html` contains `href="./<page>.html"`.
-    *   U3: `README.md` contains `<page>.html`.
-    *   U4: the page contains `href="./index.html"`.
-    *   U5: the page's module script contains `renderStatic(`; the page HTML
-        contains no `<sup` and no `<sub`.
-    *   U9: `pageUtils.js` does not import `./expression.js`, and neither do
-        the scripts of the pages in a `NO_EXPRESSION` list (exponential,
-        zeta).
-    *   For pages not in `EXEMPT_FROM_2D_RULES` (surface, with a comment
-        pointing to this spec): P1, the linked stylesheet starts with
-        `@import './page.css';`; P2, the HTML has `id="controls"`,
-        `id="chart"` and `id="facts"`; P3, the page script contains neither
-        `createElementNS(` nor `URLSearchParams(location.hash`; P4, the HTML
-        has `class="home"`.
-
-#### 15. `README.md` (Modify; commit 9)
-
-*   **Type / Scope**: Documentation.
-*   **Proposed Changes**: Replace `<sup>`/`<sub>` math with GitHub `$…$`
-    math, including Unicode subscripts such as `Sₙ`; move (not merge) the
-    exponential page's description out of "Surface plotter features" into
-    the page list; add `exponentialMath.js`, `pageUtils.test.js` and
-    `pages.test.js` to the layout table; link this spec under "Project
-    layout".
-
-#### Files not changed
-
-`index.html` (cards already exist), `vite.config.js` (entries are
-discovered automatically), `.github/workflows/pages.yml` (already runs
-`npm test` before deploying), `src/expression.js` (`constant()` already
-moved), `src/riemann.js` and `src/ftc.js` (already use the shared helpers;
-their wrappers may keep their names under P3), `src/tex.js`,
-`src/theme.css`, `src/integral.js`, `src/zetaMath.js`, `src/surface.js`,
-`src/plot.js`. `specs/concepts_brief.md` and the review reports stay as the
-record of how this spec was made.
-
-### Verification Plan
-
-*   **Compilation/Build**: `npm run build` after every commit.
-*   **Unit Tests**: `npm test` (Vitest) after every commit: the existing
-    tests, `pageUtils.test.js` from commit 2, `exponentialMath.test.js` from
-    commit 3, `pages.test.js` from commit 8.
-*   **Static Analysis & Linting**: none configured in the project; not added.
-*   **Test Coverage Requirement**: every exported function of
-    `exponentialMath.js`, `parseHash`, `serializeHash`, `extent` and
-    `robustExtent` has tests; no percentage target.
-*   **E2E/Integration**: the owner's manual checklist, run on
-    `npm run build && npm run preview` for the pages each commit touched
-    (all pages for commit 2).
 
 --------------------------------------------------------------------------------
 
