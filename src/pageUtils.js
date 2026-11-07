@@ -154,7 +154,25 @@ export function stateFromHash(defaults) {
   return parseHash(location.hash, defaults);
 }
 
-/** Mirrors the state into the URL hash without adding a history entry. */
-export function writeHash(state) {
-  history.replaceState(null, '', '#' + serializeHash(state));
+// Browsers throttle history.replaceState (Chrome drops calls beyond a few
+// hundred per 10 s), which an animation calling writeHash every frame exceeds.
+// So writes are coalesced: at most one per HASH_DELAY ms, always ending with
+// the latest state, and a pending write is flushed when the page is left.
+const HASH_DELAY = 100;
+let pendingHash = null;
+let hashTimer = null;
+
+function flushHash() {
+  clearTimeout(hashTimer);
+  hashTimer = null;
+  if (pendingHash != null) history.replaceState(null, '', '#' + pendingHash);
+  pendingHash = null;
 }
+
+/** Mirrors the state into the URL hash without adding a history entry (coalesced, see above). */
+export function writeHash(state) {
+  pendingHash = serializeHash(state);
+  hashTimer ??= setTimeout(flushHash, HASH_DELAY);
+}
+
+if (typeof window !== 'undefined') window.addEventListener('pagehide', flushHash);
