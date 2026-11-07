@@ -34,11 +34,6 @@ main {
 
 /* --- Controls --------------------------------------------------------------- */
 
-.field {
-  display: grid;
-  gap: 4px;
-}
-
 .field span,
 .count legend,
 .range legend {
@@ -49,10 +44,6 @@ main {
 #controls > .field:first-child span {
   color: var(--text);
   font-size: 15px;
-}
-
-#expr {
-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
 
 .pair {
@@ -67,15 +58,6 @@ main {
   gap: 4px 10px;
 }
 
-.count legend {
-  padding: 0;
-  margin-bottom: 4px;
-}
-
-.count label {
-  font-size: 17px;
-}
-
 .riemann {
   display: grid;
   gap: 10px;
@@ -83,57 +65,10 @@ main {
   border-top: 1px solid var(--border);
 }
 
-.segmented {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.segmented label {
-  text-align: center;
-  padding: 5px 2px;
-  cursor: pointer;
-  background: var(--input);
-  border-left: 1px solid var(--border);
-  font-size: 13px;
-}
-
-.segmented label:first-child {
-  border-left: 0;
-}
-
-.segmented input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.segmented label:has(input:checked) {
-  background: var(--accent);
-  color: var(--bg);
-}
-
-.segmented label:has(input:focus-visible) {
-  outline: 2px solid var(--accent);
-  outline-offset: -3px;
-}
-
 /* Rule and n only matter while the rectangles are shown. */
 .riemann:not(:has(#rects:checked)) .count,
 .riemann:not(:has(#rects:checked)) .segmented {
   opacity: 0.5;
-}
-
-#status {
-  margin: 0;
-  color: var(--error);
-  font-size: 13px;
-}
-
-#status:empty {
-  display: none;
 }
 
 /* --- Marks ------------------------------------------------------------------ */

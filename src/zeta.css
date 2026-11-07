@@ -17,6 +17,11 @@
   font-size: 12px;
 }
 
+/* Zeta spaces its labels with the margin above, not page.css's .field gap. */
+.field {
+  gap: 0;
+}
+
 .count label {
   font-size: 17px;
 }
@@ -34,9 +39,6 @@
   border-top: 1px solid var(--border);
 }
 
-.field {
-  display: grid;
-}
 
 .zeta,
 .partial,
