@@ -325,7 +325,7 @@ button:hover {
   white-space: pre;
 }
 
-.slice-chart svg {
+.slice-chart > svg {
   display: block;
   width: 100%;
   height: 180px;
@@ -334,7 +334,7 @@ button:hover {
   touch-action: none;
 }
 
-.slice-chart svg:focus-visible {
+.slice-chart > svg:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
@@ -399,7 +399,7 @@ button:hover {
     left: 16px;
     width: auto;
   }
-  .slice-chart svg {
+  .slice-chart > svg {
     height: 96px;
   }
   /* The charts' own readouts cover hover on small screens. */

@@ -14,7 +14,7 @@ const MARGIN = { top: 12, right: 16, bottom: 26, left: 48 };
 const $ = (id) => document.getElementById(id);
 const fields = Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, $(k)]));
 const sliders = Object.fromEntries(PARAMS.map((p) => [p, $(`${p}Slider`)]));
-const svg = document.querySelector('#chart svg');
+const svg = document.querySelector('#chart > svg');
 const hoverOut = $('hover');
 
 // Plain-text numbers for the chart's aria-label: "−2" with a real minus sign;

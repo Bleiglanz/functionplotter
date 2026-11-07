@@ -14,7 +14,7 @@ const MARGIN = { top: 12, right: 16, bottom: 26, left: 48 };
 const $ = (id) => document.getElementById(id);
 const fields = { n: $('n'), xMax: $('xMax'), yMax: $('yMax') };
 const slider = $('nSlider');
-const svg = document.querySelector('#chart svg');
+const svg = document.querySelector('#chart > svg');
 
 const clampN = (n) => Math.min(N_MAX, Math.max(1, Math.round(n) || 1));
 

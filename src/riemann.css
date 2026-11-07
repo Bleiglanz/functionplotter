@@ -21,11 +21,11 @@ main {
   white-space: pre;
 }
 
-#chart svg {
+#chart > svg {
   height: min(52vh, 460px);
 }
 
-#convergence svg {
+#convergence > svg {
   height: 220px;
   cursor: pointer;
 }

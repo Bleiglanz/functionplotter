@@ -27,8 +27,8 @@ const PLAY_INTERVAL = 220; // ms per step of the animation
 const $ = (id) => document.getElementById(id);
 const fields = { expr: $('expr'), a: $('a'), b: $('b'), n: $('n'), band: $('showBand') };
 const nSlider = $('nSlider');
-const mainSvg = document.querySelector('#chart svg');
-const convSvg = document.querySelector('#convergence svg');
+const mainSvg = document.querySelector('#chart > svg');
+const convSvg = document.querySelector('#convergence > svg');
 
 // --- Form, presets and URL hash ---------------------------------------------
 

@@ -153,6 +153,11 @@ describe('geodesicAcceleration', () => {
 });
 
 describe('niceTicks', () => {
+  it('puts an exact 0 among the ticks', () => {
+    expect(niceTicks(-0.5, 0.5, 8).ticks).toEqual([-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6]);
+    expect(niceTicks(-0.3, 0.7, 8).ticks).toContain(0);
+  });
+
   it('uses 1/2/5 steps and covers the range', () => {
     expect(niceTicks(-6.54, 8.1, 4)).toEqual({ ticks: [-10, -5, 0, 5, 10], min: -10, max: 10 });
     expect(niceTicks(0, 1, 5).ticks).toEqual([0, 0.2, 0.4, 0.6, 0.8, 1]);

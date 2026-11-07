@@ -19,6 +19,11 @@ export function niceTicks(min, max, count = 5) {
   const lo = Math.floor(min / step) * step;
   const hi = Math.ceil(max / step) * step;
   const ticks = [];
-  for (let t = lo; t <= hi + step / 2; t += step) ticks.push(+t.toPrecision(12));
+  // Each tick from its index, not by repeated addition, and snapped to 0 when
+  // rounding leaves something like -5.55e-17 there.
+  for (let i = 0; lo + i * step <= hi + step / 2; i++) {
+    const t = lo + i * step;
+    ticks.push(Math.abs(t) < step * 1e-9 ? 0 : +t.toPrecision(12));
+  }
   return { ticks, min: lo, max: hi };
 }

@@ -16,7 +16,7 @@ export class SliceChart {
     this.onHover = onHover ?? (() => {});
     this.title = root.querySelector('.chart-title');
     this.value = root.querySelector('.chart-value');
-    this.svg = root.querySelector('svg');
+    this.svg = root.querySelector(':scope > svg');
     this.data = null;
     this.index = null;
 
