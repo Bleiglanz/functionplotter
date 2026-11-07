@@ -26,8 +26,8 @@ main {
 }
 
 /* Both charts share the x mapping, so they share a height; dragging sets b. */
-#chart svg,
-#antiChart svg {
+#chart > svg,
+#antiChart > svg {
   height: min(36vh, 320px);
   cursor: ew-resize;
 }

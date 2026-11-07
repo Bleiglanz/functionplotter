@@ -1,0 +1,156 @@
+@import './page.css';
+
+/* Secant-to-tangent page: the function with secant and tangent on top, the
+   secant slope as a function of h below. Form controls come from page.css. */
+
+main {
+  grid-template-areas:
+    'controls chart'
+    'controls slope'
+    'controls facts';
+}
+
+/* Panel, caption and svg basics come from .chart-figure in page.css. */
+#slopeChart {
+  grid-area: slope;
+}
+
+#chart > svg {
+  height: min(46vh, 420px);
+  cursor: ew-resize;
+}
+
+#slopeChart > svg {
+  height: 240px;
+  cursor: pointer;
+}
+
+.readout {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: pre;
+}
+
+#controls > .field:first-child span {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.field span,
+.count legend,
+.range legend {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.count {
+  display: grid;
+  grid-template-columns: 20px 1fr 88px;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+/* Two sides instead of the five sample-point rules. */
+.segmented.sides {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* --- Marks ------------------------------------------------------------------ */
+
+.curve {
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+.secant,
+.tangent,
+.slope-curve {
+  fill: none;
+  stroke-linejoin: round;
+}
+
+.secant {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.tangent {
+  stroke: var(--tangent);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+}
+
+.tangent.vertical {
+  stroke-dasharray: 2 4;
+}
+
+.triangle {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.tex-label.triangle-label > div {
+  color: var(--accent);
+}
+
+.tex-label.point-label > div {
+  color: var(--muted);
+}
+
+.point-p {
+  fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.slope-curve {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.limit {
+  stroke: var(--tangent);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+}
+
+/* The quotient is undefined at h = 0: its limit is shown as an open circle. */
+.hole {
+  fill: var(--panel);
+  stroke: var(--tangent);
+  stroke-width: 2;
+}
+
+.legend {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.key {
+  display: inline-block;
+  width: 14px;
+  height: 0;
+  margin: 0 4px 0 12px;
+  vertical-align: middle;
+}
+
+.key:first-child {
+  margin-left: 0;
+}
+
+.key.secant {
+  border-top: 2px solid var(--accent);
+}
+
+.key.tangent {
+  border-top: 2px dashed var(--tangent);
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-areas: 'chart' 'slope' 'controls' 'facts';
+  }
+}

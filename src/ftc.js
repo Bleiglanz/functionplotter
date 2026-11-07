@@ -35,8 +35,8 @@ const fields = {
 };
 const bSlider = $('bSlider');
 const nSlider = $('nSlider');
-const antiSvg = document.querySelector('#antiChart svg');
-const fSvg = document.querySelector('#chart svg');
+const antiSvg = document.querySelector('#antiChart > svg');
+const fSvg = document.querySelector('#chart > svg');
 
 // --- Form, presets and URL hash ---------------------------------------------
 
@@ -375,6 +375,10 @@ function facts(m, cur, state) {
     '\\(\\int_a^b f = G(b) - G(a)\\)',
     `The second half of the theorem: any antiderivative \\(G\\) (\\(G' = f\\)) differs from \\(F\\) by a constant, ` +
       `so the integral is \\(G(b) - G(a)\\). Changing \\(a\\) only shifts \\(F\\) up or down.`,
+  ]);
+  items.push([
+    'Related',
+    'How a tangent arises as the limit of secants is the subject of the <a href="./derivative.html">secant to tangent</a> page.',
   ]);
   const list = document.querySelector('#facts dl');
   list.replaceChildren();

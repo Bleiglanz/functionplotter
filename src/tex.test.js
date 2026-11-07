@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { tex, texNum, texSigned, texText } from './tex.js';
-import { expressionToTex } from './expression.js';
+import { expressionToTex, derivativeToTex } from './expression.js';
 
 describe('texNum', () => {
   it('formats like formatNumber, with TeX exponents', () => {
@@ -48,5 +48,18 @@ describe('texText', () => {
     expect(html.match(/class="katex"/g)).toHaveLength(2);
     expect(html.endsWith('</span>.</span>')).toBe(true); // the period is kept with the formula
     expect(html).toContain('<span class="tex-nowrap">');
+  });
+});
+
+describe('derivativeToTex', () => {
+  it('differentiates formulas symbolically', () => {
+    expect(derivativeToTex('x^2')).toBe('2\\cdot x');
+    expect(derivativeToTex('sin(x)')).toBe('\\cos\\left( x\\right)');
+    expect(tex(derivativeToTex('x^3 - 3x'))).not.toContain('katex-error');
+  });
+
+  it('gives null where math.js cannot differentiate', () => {
+    expect(derivativeToTex('x == 0 ? 0 : x*sin(1/x)')).toBeNull();
+    expect(derivativeToTex('sin(x')).toBeNull();
   });
 });

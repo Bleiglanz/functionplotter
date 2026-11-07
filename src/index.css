@@ -109,6 +109,10 @@ header p {
   stroke-width: 2;
 }
 
+.t-dot {
+  fill: var(--text);
+}
+
 .t-area {
   fill: color-mix(in srgb, var(--accent) 30%, transparent);
 }

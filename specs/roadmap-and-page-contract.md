@@ -142,10 +142,13 @@ working, and record the roadmap and the decisions in this spec.
 
 ## Open Questions
 
-*   **Q1**: How are overlapping topics split or merged: the secant derivative
-    versus the FTC page's tangent, ε–δ versus ε–N in sequences, linear maps
-    and eigenvectors as one page or two? The admission rule (below) gives the
-    test; each case is decided when the topic is picked up.
+*   **Q1**: How are overlapping topics split or merged: ε–δ versus ε–N in
+    sequences, linear maps and eigenvectors as one page or two? The admission
+    rule (below) gives the test; each case is decided when the topic is picked
+    up. Decided so far: the secant derivative got its own page
+    (`derivative.html`), because the FTC page's main picture is the area
+    building F, not the limit of secant slopes; the two pages link to each
+    other.
 *   **Q2**: Symbolic (math.js `derivative`) or numeric derivatives for Taylor
     polynomials? Decided with the Taylor page.
 *   **Q3**: In which order are the roadmap topics built? The roadmap suggests

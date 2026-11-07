@@ -27,6 +27,8 @@ const PAGES = {
   riemann: { expr: 'x^2', a: '0', b: '2', n: 8, rule: 'left', band: true },
   // src/ftc.js
   ftc: { expr: 'cos(x)', a: '0', xMin: '-1', xMax: '7', b: 2, n: 8, rule: 'midpoint', rects: false },
+  // src/derivative.js
+  derivative: { expr: 'x^2', xMin: '-1', xMax: '3', x0: 1, h: 1 },
 };
 
 // Links shared before the conformance work, with the state they must keep opening (U6).
@@ -48,6 +50,10 @@ const FIXTURES = {
   ftc: [
     '#expr=cos%28x%29&a=0&xMin=-1&xMax=7&b=2&n=8&rule=midpoint&rects=0',
     { expr: 'cos(x)', a: '0', xMin: '-1', xMax: '7', b: 2, n: 8, rule: 'midpoint', rects: false },
+  ],
+  derivative: [
+    '#expr=abs%28x%29&xMin=-2&xMax=2&x0=0&h=-0.25',
+    { expr: 'abs(x)', xMin: '-2', xMax: '2', x0: 0, h: -0.25 },
   ],
 };
 

@@ -1,4 +1,4 @@
-import { compile, parse } from 'mathjs';
+import { compile, derivative, parse } from 'mathjs';
 
 const CONSTANTS = ['pi', 'e', 'PI', 'E', 'tau', 'phi'];
 // A point unlikely to hit a domain edge, for the up-front test evaluation.
@@ -74,5 +74,18 @@ export function constant(source, name) {
     return compileFunction(source, [])();
   } catch (err) {
     throw new Error(`${name}: ${err.message}`);
+  }
+}
+
+/**
+ * TeX for the symbolic derivative d/dx of a user expression, e.g. "x^2" → "2\cdot x",
+ * or null when math.js cannot differentiate it (for example a piecewise "a ? b : c").
+ * For display only: values of f′ are computed numerically.
+ */
+export function derivativeToTex(source) {
+  try {
+    return derivative(parse(source), 'x').toTex({ implicit: 'hide' }).replaceAll('~', '\\,');
+  } catch {
+    return null;
   }
 }

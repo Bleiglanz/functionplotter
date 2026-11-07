@@ -7,6 +7,10 @@ each, linked from a landing page. Formulas are typeset with [KaTeX](https://kate
   [three.js](https://threejs.org) and [math.js](https://mathjs.org). Type an
   expression, orbit the surface, slice it, and explore its differential geometry:
   tangent planes, unit tangent vectors and the geodesics they start.
+- **Secant to tangent** (`derivative.html`): the derivative $f'(x_0)$ as the limit of
+  secant slopes $\frac{f(x_0+h)-f(x_0)}{h}$. Drag $x_0$ and $x_0 + h$ or let $h \to 0$;
+  a second chart shows the slope as a function of $h$, so corners, vertical tangents
+  and slopes without a limit are visible too.
 - **Riemann sums** (`riemann.html`): how $\int_a^b f(x)\,dx$ arises from sums over
   equidistant partitions.
 - **Exponential functions** (`exponential.html`): sliders for $a$, $b$, $c$ and $d$ in
@@ -100,6 +104,8 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/pageUtils.js` | Chart, number and URL-hash helpers shared by the pages |
 | `src/pageUtils.test.js` | Hash-parser tests, including one saved link per page |
 | `src/pages.test.js` | Static check of the page contract (HTML, scripts, styles) |
+| `src/derivative.js` | Secant-to-tangent page |
+| `src/derivativeMath.js` | Difference quotients and their one-sided limits |
 | `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
 | `src/zeta.js` | Riemann zeta page |
 
