@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Taylor Polynomials</title>
+    <link rel="stylesheet" href="/src/taylor.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Taylor polynomials: \(T_n(x) = \sum_{k=0}^{n} \frac{f^{(k)}(x_0)}{k!}\,(x - x_0)^k\)</h1>
+      <a class="home" href="./index.html">← All topics</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <label class="field">
+          <span>\(f(x) =\)</span>
+          <input id="expr" spellcheck="false" />
+        </label>
+
+        <label class="field">
+          <span>Example</span>
+          <select id="preset">
+            <option value="">Choose…</option>
+          </select>
+        </label>
+
+        <fieldset class="range">
+          <legend>View \(x\) from</legend>
+          <input id="xMin" spellcheck="false" aria-label="x min" />
+          <span>to</span>
+          <input id="xMax" spellcheck="false" aria-label="x max" />
+        </fieldset>
+
+        <fieldset class="count">
+          <legend>Center (or drag in the chart)</legend>
+          <label for="x0">\(x_0\)</label>
+          <input id="x0Slider" type="range" aria-label="x₀ slider" />
+          <input id="x0" type="number" step="any" />
+        </fieldset>
+
+        <fieldset class="count">
+          <legend>Degree</legend>
+          <label for="n">\(n\)</label>
+          <input id="nSlider" type="range" min="0" max="30" step="1" aria-label="n slider" />
+          <input id="n" type="number" min="0" max="30" step="1" />
+        </fieldset>
+
+        <button id="play" type="button" aria-pressed="false">▶ Add terms</button>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+        <p class="legend">
+          <i class="key curve"></i> \(f\)
+          <i class="key taylor"></i> \(T_n\)
+          <i class="key fit"></i> where \(|f - T_n| &lt; \varepsilon\)
+        </p>
+      </figure>
+
+      <figure id="errorChart" class="chart-figure">
+        <figcaption>
+          <span>The error \(|f(x) - T_n(x)|\) on a log scale (\(k\) on the axis means \(10^{k}\)); ←/→ change \(n\)</span>
+          <span id="errorHover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>What the pictures say</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/taylor.js"></script>
+  </body>
+</html>

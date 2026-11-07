@@ -11,6 +11,9 @@ each, linked from a landing page. Formulas are typeset with [KaTeX](https://kate
   secant slopes $\frac{f(x_0+h)-f(x_0)}{h}$. Drag $x_0$ and $x_0 + h$ or let $h \to 0$;
   a second chart shows the slope as a function of $h$, so corners, vertical tangents
   and slopes without a limit are visible too.
+- **Taylor polynomials** (`taylor.html`): $f$ and its Taylor polynomial $T_n$ at a
+  draggable $x_0$, with a slider for the degree $n$, the stretch where $|f - T_n| < \varepsilon$
+  shaded, and the error $|f - T_n|$ on a log scale.
 - **Riemann sums** (`riemann.html`): how $\int_a^b f(x)\,dx$ arises from sums over
   equidistant partitions.
 - **Exponential functions** (`exponential.html`): sliders for $a$, $b$, $c$ and $d$ in
@@ -106,6 +109,8 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/pages.test.js` | Static check of the page contract (HTML, scripts, styles) |
 | `src/derivative.js` | Secant-to-tangent page |
 | `src/derivativeMath.js` | Difference quotients and their one-sided limits |
+| `src/taylor.js` | Taylor-polynomial page |
+| `src/taylorMath.js` | Taylor coefficients by power-series arithmetic on the parse tree |
 | `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
 | `src/zeta.js` | Riemann zeta page |
 

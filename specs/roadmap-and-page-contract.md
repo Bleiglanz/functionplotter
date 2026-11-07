@@ -149,8 +149,13 @@ working, and record the roadmap and the decisions in this spec.
     (`derivative.html`), because the FTC page's main picture is the area
     building F, not the limit of secant slopes; the two pages link to each
     other.
-*   **Q2**: Symbolic (math.js `derivative`) or numeric derivatives for Taylor
-    polynomials? Decided with the Taylor page.
+*   **Q2** (decided with the Taylor page): neither symbolic nor numeric
+    differentiation. Repeated math.js `derivative` grows the expression
+    exponentially (five derivatives of 1/(1 + x²) took 7.7 s), and finite
+    differences lose all accuracy after a few orders. `taylorMath.js`
+    evaluates the parse tree on truncated power series instead: exact up to
+    rounding, and fast to order 40. Cost: each math.js function needs its own
+    rule; functions without one get an error message.
 *   **Q3**: In which order are the roadmap topics built? The roadmap suggests
     an order based on reuse; the owner decides.
 

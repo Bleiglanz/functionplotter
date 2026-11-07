@@ -29,6 +29,8 @@ const PAGES = {
   ftc: { expr: 'cos(x)', a: '0', xMin: '-1', xMax: '7', b: 2, n: 8, rule: 'midpoint', rects: false },
   // src/derivative.js
   derivative: { expr: 'x^2', xMin: '-1', xMax: '3', x0: 1, h: 1 },
+  // src/taylor.js
+  taylor: { expr: 'sin(x)', xMin: '-7', xMax: '7', x0: 0, n: 3 },
 };
 
 // Links shared before the conformance work, with the state they must keep opening (U6).
@@ -54,6 +56,10 @@ const FIXTURES = {
   derivative: [
     '#expr=abs%28x%29&xMin=-2&xMax=2&x0=0&h=-0.25',
     { expr: 'abs(x)', xMin: '-2', xMax: '2', x0: 0, h: -0.25 },
+  ],
+  taylor: [
+    '#expr=log%28x%29&xMin=-0.5&xMax=3.5&x0=1&n=8',
+    { expr: 'log(x)', xMin: '-0.5', xMax: '3.5', x0: 1, n: 8 },
   ],
 };
 

@@ -68,6 +68,15 @@ export function expressionToTex(source) {
   }
 }
 
+/**
+ * The math.js parse tree of an expression, for code that walks it (the Taylor
+ * page). Call compileFunction first: it validates the expression and gives
+ * the readable errors.
+ */
+export function parseExpression(source) {
+  return parse(source.trim());
+}
+
 /** Evaluates a constant expression such as "pi/2"; errors are prefixed with `name`. */
 export function constant(source, name) {
   try {

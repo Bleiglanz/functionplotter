@@ -334,7 +334,8 @@ function facts(m, cur) {
   items.push([
     'Related',
     `The tangent appears again on the <a href="./ftc.html">fundamental theorem</a> page: there the slope of ` +
-      `\\(F(x) = \\int_a^x f\\) at \\(b\\) is \\(f(b)\\).`,
+      `\\(F(x) = \\int_a^x f\\) at \\(b\\) is \\(f(b)\\). The tangent is also the first ` +
+      `<a href="./taylor.html">Taylor polynomial</a> \\(T_1\\); higher degrees fit \\(f\\) better near \\(x_0\\).`,
   ]);
   const list = document.querySelector('#facts dl');
   list.replaceChildren();
