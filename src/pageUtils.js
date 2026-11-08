@@ -1,5 +1,5 @@
 import { formatNumber as fmt, niceTicks } from './format.js';
-import { tex } from './tex.js';
+import { tex, texText } from './tex.js';
 
 // Helpers shared by the 2D topic pages: SVG charts, number display and URL-hash state.
 
@@ -36,6 +36,61 @@ export function svgTex(parent, x, y, src, { anchor = 'start', baseline = 'bottom
   return fo;
 }
 
+/**
+ * Fills the #facts list with [term, text] pairs, both prose with inline \( … \)
+ * TeX (see texText in tex.js). An empty list clears it.
+ */
+export function setFacts(items) {
+  const list = document.querySelector('#facts dl');
+  list.replaceChildren();
+  for (const [term, text] of items) {
+    const dt = document.createElement('dt');
+    dt.innerHTML = texText(term);
+    const dd = document.createElement('dd');
+    dd.innerHTML = texText(text);
+    list.append(dt, dd);
+  }
+}
+
+/**
+ * An arrow from (x1, y1) to (x2, y2) in screen units: a line and a filled head
+ * of length `head`, both in a <g> with class `cls` (color it with stroke/fill
+ * in CSS). A tip closer than the head draws only the head, scaled down.
+ */
+export function arrow(parent, x1, y1, x2, y2, { cls = '', head = 9 } = {}) {
+  const g = svgEl('g', { class: `arrow ${cls}`.trim() }, parent);
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy);
+  if (!(len > 0)) return g;
+  const h = Math.min(head, len);
+  const ux = dx / len;
+  const uy = dy / len;
+  const bx = x2 - ux * h;
+  const by = y2 - uy * h;
+  svgEl('line', { x1, y1, x2: bx, y2: by }, g);
+  const w = h * 0.45;
+  svgEl('path', { d: `M${x2},${y2} L${bx - uy * w},${by + ux * w} L${bx + uy * w},${by - ux * w} Z` }, g);
+  return g;
+}
+
+/**
+ * Screen mappings with one unit the same length on both axes: the box's plot
+ * area shows at least [xMin, xMax] × [yMin, yMax], widened in x or y to fill it.
+ * Returns { xMin, xMax, yMin, yMax, sx, sy, scale (pixels per unit), toMath(px, py) }.
+ */
+export function equalScale({ plotW, plotH, margin }, xMin, xMax, yMin, yMax) {
+  const scale = Math.min(plotW / (xMax - xMin), plotH / (yMax - yMin));
+  const cx = (xMin + xMax) / 2;
+  const cy = (yMin + yMax) / 2;
+  const halfW = plotW / scale / 2;
+  const halfH = plotH / scale / 2;
+  const view = { xMin: cx - halfW, xMax: cx + halfW, yMin: cy - halfH, yMax: cy + halfH, scale };
+  view.sx = (x) => margin.left + (x - view.xMin) * scale;
+  view.sy = (y) => margin.top + (view.yMax - y) * scale;
+  view.toMath = (px, py) => [view.xMin + (px - margin.left) / scale, view.yMax - (py - margin.top) / scale];
+  return view;
+}
 
 /** Calls f, turning thrown errors and non-finite values into NaN. */
 export function safe(f, x) {

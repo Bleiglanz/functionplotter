@@ -1,0 +1,132 @@
+@import './page.css';
+
+/* Sequences page: the terms as dots with the ε-band on top, N(ε) below.
+   Form controls, readouts and legend keys come from page.css. */
+
+main {
+  grid-template-areas:
+    'controls chart'
+    'controls nchart'
+    'controls facts';
+}
+
+#nChart {
+  grid-area: nchart;
+}
+
+#chart > svg {
+  height: min(50vh, 440px);
+  cursor: ns-resize;
+}
+
+#nChart > svg {
+  height: 220px;
+  cursor: pointer;
+}
+
+/* --- Marks ------------------------------------------------------------------ */
+
+.band {
+  fill: var(--accent);
+  opacity: 0.12;
+}
+
+.band-edge {
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+
+.limit-line {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.n-line {
+  stroke: var(--text);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.term {
+  stroke: var(--bg);
+  stroke-width: 1;
+}
+
+.term.in {
+  fill: var(--accent);
+}
+
+.term.early {
+  fill: var(--muted);
+}
+
+.term.out {
+  fill: var(--negative);
+}
+
+.term.current {
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+.n-curve {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.n-marker {
+  fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.n-cross {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.tex-label.n-label > div {
+  color: var(--text);
+}
+
+.tex-label.out-label > div {
+  color: var(--negative);
+}
+
+.tex-label.limit-label > div {
+  color: var(--accent);
+}
+
+.key.band {
+  height: 10px;
+  background: var(--accent);
+  opacity: 0.25;
+}
+
+.key.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.key.dot.in {
+  background: var(--accent);
+}
+
+.key.dot.early {
+  background: var(--muted);
+}
+
+.key.dot.out {
+  background: var(--negative);
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-areas: 'chart' 'nchart' 'controls' 'facts';
+  }
+}

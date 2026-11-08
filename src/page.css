@@ -311,6 +311,57 @@ fieldset {
   outline-offset: -3px;
 }
 
+/* Parts most 2D pages share: number rows (label, slider, field), muted
+   labels, readouts beside a caption, and the key under a chart. */
+.count {
+  display: grid;
+  grid-template-columns: 20px 1fr 88px;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.field span,
+.count legend,
+.range legend {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#controls > .field:first-child span {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.readout {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: pre;
+}
+
+.legend {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.key {
+  display: inline-block;
+  width: 14px;
+  height: 0;
+  margin: 0 4px 0 12px;
+  vertical-align: middle;
+}
+
+.key:first-child {
+  margin-left: 0;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 #status {
   margin: 0;
   color: var(--error);

@@ -156,3 +156,15 @@ footer a {
     transform: none;
   }
 }
+
+.t-band {
+  fill: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.t-dots circle {
+  fill: var(--muted);
+}
+
+.t-dots.in circle {
+  fill: var(--accent);
+}

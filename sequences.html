@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sequences and Convergence</title>
+    <link rel="stylesheet" href="/src/sequences.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Convergence: \(|a_n - L| &lt; \varepsilon\) for all \(n \ge N\)</h1>
+      <a class="home" href="./index.html">← All topics</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <label class="field">
+          <span>\(a_n =\)</span>
+          <input id="expr" spellcheck="false" />
+        </label>
+
+        <label class="field">
+          <span>Example</span>
+          <select id="preset">
+            <option value="">Choose…</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Limit \(L\) (leave empty to estimate it)</span>
+          <input id="L" spellcheck="false" placeholder="estimated" />
+        </label>
+
+        <fieldset class="count">
+          <legend>Band half-width (or drag up and down in the chart)</legend>
+          <label for="eps">\(\varepsilon\)</label>
+          <input id="epsSlider" type="range" min="-4" max="1" step="0.01" aria-label="ε slider (logarithmic)" />
+          <input id="eps" type="number" min="0" step="any" />
+        </fieldset>
+
+        <fieldset class="count">
+          <legend>Terms shown</legend>
+          <label for="nMax">\(n \le\)</label>
+          <input id="nMaxSlider" type="range" min="10" max="400" step="1" aria-label="number of terms slider" />
+          <input id="nMax" type="number" min="5" max="2000" step="1" />
+        </fieldset>
+
+        <div class="buttons">
+          <button id="shrink" type="button" aria-pressed="false">▶ Shrink ε</button>
+          <button id="fit" type="button">Show up to \(N(\varepsilon)\)</button>
+        </div>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+        <p class="legend">
+          <i class="key band"></i> \(L \pm \varepsilon\)
+          <i class="key dot in"></i> from \(N\) on
+          <i class="key dot early"></i> inside, but before \(N\)
+          <i class="key dot out"></i> outside the band
+        </p>
+      </figure>
+
+      <figure id="nChart" class="chart-figure">
+        <figcaption>
+          <span>\(N(\varepsilon)\) against \(\varepsilon\), both on log scales (\(k\) on an axis means \(10^{k}\)); click or ←/→ set \(\varepsilon\)</span>
+          <span id="nHover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>What the pictures say</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/sequences.js"></script>
+  </body>
+</html>

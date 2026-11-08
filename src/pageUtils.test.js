@@ -31,6 +31,8 @@ const PAGES = {
   derivative: { expr: 'x^2', xMin: '-1', xMax: '3', x0: 1, h: 1 },
   // src/taylor.js
   taylor: { expr: 'sin(x)', xMin: '-7', xMax: '7', x0: 0, n: 3 },
+  // src/sequences.js
+  sequences: { expr: '1 + 2*(-1)^n/n', L: '', eps: 0.25, nMax: 40 },
 };
 
 // Links shared before the conformance work, with the state they must keep opening (U6).
@@ -60,6 +62,10 @@ const FIXTURES = {
   taylor: [
     '#expr=log%28x%29&xMin=-0.5&xMax=3.5&x0=1&n=8',
     { expr: 'log(x)', xMin: '-0.5', xMax: '3.5', x0: 1, n: 8 },
+  ],
+  sequences: [
+    '#expr=1%2Fn&L=0.1&eps=0.05&nMax=40',
+    { expr: '1/n', L: '0.1', eps: 0.05, nMax: 40 },
   ],
 };
 

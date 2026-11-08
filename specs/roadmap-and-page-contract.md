@@ -148,7 +148,10 @@ working, and record the roadmap and the decisions in this spec.
     up. Decided so far: the secant derivative got its own page
     (`derivative.html`), because the FTC page's main picture is the area
     building F, not the limit of secant slopes; the two pages link to each
-    other.
+    other. ε–N and ε–δ are two pages (`sequences.html`,
+    `epsilon-delta.html`): one concept each (a sequence's limit, a function's
+    continuity at a point) with different pictures (dots against n, a graph
+    over a window around x₀); they link to each other.
 *   **Q2** (decided with the Taylor page): neither symbolic nor numeric
     differentiation. Repeated math.js `derivative` grows the expression
     exponentially (five derivatives of 1/(1 + x²) took 7.7 s), and finite
