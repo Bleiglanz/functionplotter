@@ -1,3 +1,5 @@
+import { rk4Step } from './odeMath.js';
+
 /** Wraps f so that a thrown evaluation error returns NaN instead. */
 function safe(f) {
   return (...args) => {
@@ -161,7 +163,7 @@ export function geodesicAcceleration(f, x, y, vx, vy) {
  * velocity (vx, vy) in the xy-plane (the 3D velocity being (vx, vy, fx vx + fy vy)).
  * In graph coordinates the geodesic equations reduce to
  *   x'' = -fx K,  y'' = -fy K,  K = (fxx x'² + 2 fxy x'y' + fyy y'²) / (1 + fx² + fy²),
- * integrated with RK4 at a fixed parameter step. Derivatives are taken by
+ * integrated with RK4 (`rk4Step` in odeMath.js) at a fixed parameter step. Derivatives are taken by
  * central differences. Stops on leaving the domain, where f or its derivatives
  * are not finite, or after maxSteps. Returns the points [{ x, y, z, vx, vy }, ...],
  * starting at (x, y), with the xy-velocity at each.
@@ -177,16 +179,11 @@ export function geodesic(f, x, y, vx, vy, { xMin, xMax, yMin, yMax, step, maxSte
   const points = [];
   let s = [x, y, vx, vy];
   const deriv = ([px, py, u, v]) => [u, v, ...accel(px, py, u, v)];
-  const plus = (a, k, c) => a.map((ai, i) => ai + c * k[i]);
   for (let i = 0; i <= maxSteps; i++) {
     const z = at(s[0], s[1]);
     if (!inside(s[0], s[1]) || !Number.isFinite(z)) break;
     points.push({ x: s[0], y: s[1], z, vx: s[2], vy: s[3] });
-    const k1 = deriv(s);
-    const k2 = deriv(plus(s, k1, step / 2));
-    const k3 = deriv(plus(s, k2, step / 2));
-    const k4 = deriv(plus(s, k3, step));
-    const next = s.map((si, j) => si + (step / 6) * (k1[j] + 2 * k2[j] + 2 * k3[j] + k4[j]));
+    const next = rk4Step(deriv, s, step);
     if (!next.every(Number.isFinite)) break;
     s = next;
   }

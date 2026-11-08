@@ -1,0 +1,83 @@
+@import './page.css';
+
+/* Direction-field page: short arrows of slope f(x, y) on a grid, and the
+   solution curves started by clicking. Form controls come from page.css. */
+
+#chart > svg {
+  height: min(70vh, 620px);
+  cursor: crosshair;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.field-arrows .arrow line {
+  stroke: var(--muted);
+  stroke-width: 1.3;
+}
+
+.field-arrows .arrow path {
+  fill: var(--muted);
+}
+
+.solution {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.solution.latest {
+  stroke-width: 3;
+}
+
+.preview {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  opacity: 0.7;
+}
+
+.start {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.walker {
+  fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.tangent-mark {
+  stroke: var(--tangent);
+  stroke-width: 2;
+}
+
+.zero-curve {
+  stroke: var(--negative);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+
+.key.field-key {
+  border-top: 1.5px solid var(--muted);
+}
+
+.key.solution {
+  border-top: 2.5px solid var(--accent);
+}
+
+.key.preview {
+  border-top: 1.5px dashed var(--text);
+}
+
+.key.zero {
+  border-top: 1.5px dashed var(--negative);
+}

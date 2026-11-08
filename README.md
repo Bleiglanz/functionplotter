@@ -38,6 +38,9 @@ each, linked from a landing page. Formulas are typeset with [KaTeX](https://kate
 - **Eigenvectors** (`eigenvectors.html`): a unit vector $v$ turns around the circle with $Av$
   drawn beside it; where $Av$ lands on $v$'s line, $Av = \lambda v$. A second chart shows the angle
   from $v$ to $Av$, whose zeros are the eigen-directions; complex and repeated eigenvalues included.
+- **Direction fields** (`ode.html`): the slope field of $y' = f(x, y)$; click to start a
+  solution curve (traced both ways with Runge–Kutta), hover to preview one, and show the curve
+  where $y' = 0$. Examples include equilibria, finite-time blow-up and a failure of uniqueness.
 - **Riemann zeta function** (`zeta.html`): $\zeta(x)$ for real $x > 1$ with the partial
   sums $\sum_{k=1}^{n} 1/k^x$ and a (logarithmic) slider for $n$.
 
@@ -136,6 +139,8 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/linearMath.js` | 2×2 matrices: determinant, inverse, eigenvalues, classification |
 | `src/eigenvectors.js` | Eigenvector page |
 | `src/matrix.css` | Matrix input and vector styles shared by the two matrix pages |
+| `src/ode.js` | Direction-field page |
+| `src/odeMath.js` | RK4 step (also used for geodesics), solution curves, the curve f = 0 |
 | `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
 | `src/zeta.js` | Riemann zeta page |
 

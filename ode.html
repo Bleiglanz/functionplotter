@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Direction Fields</title>
+    <link rel="stylesheet" href="/src/ode.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Direction fields: \(y' = f(x, y)\)</h1>
+      <a class="home" href="./index.html">← All topics</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <label class="field">
+          <span>\(f(x, y) =\)</span>
+          <input id="expr" spellcheck="false" />
+        </label>
+
+        <label class="field">
+          <span>Example</span>
+          <select id="preset">
+            <option value="">Choose…</option>
+          </select>
+        </label>
+
+        <fieldset class="range">
+          <legend>View \(x\) from</legend>
+          <input id="xMin" spellcheck="false" aria-label="x min" />
+          <span>to</span>
+          <input id="xMax" spellcheck="false" aria-label="x max" />
+        </fieldset>
+
+        <fieldset class="range">
+          <legend>View \(y\) from</legend>
+          <input id="yMin" spellcheck="false" aria-label="y min" />
+          <span>to</span>
+          <input id="yMax" spellcheck="false" aria-label="y max" />
+        </fieldset>
+
+        <label class="check"><input id="nullcline" type="checkbox" /> Show where \(y' = 0\)</label>
+
+        <div class="buttons">
+          <button id="undo" type="button">Remove the last curve</button>
+          <button id="clear" type="button">Remove all</button>
+        </div>
+
+        <p class="hint">Click the chart to start a solution there. Hover to preview it.</p>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+        <p class="legend">
+          <i class="key field-key"></i> slope \(f(x, y)\)
+          <i class="key solution"></i> solutions
+          <i class="key preview"></i> preview
+          <i class="key zero"></i> \(y' = 0\)
+        </p>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>What the picture says</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/ode.js"></script>
+  </body>
+</html>

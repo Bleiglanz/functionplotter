@@ -213,3 +213,10 @@ footer a {
   stroke-width: 1.5;
   stroke-dasharray: 6 3;
 }
+
+.t-field path {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
