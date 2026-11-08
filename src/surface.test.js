@@ -168,4 +168,10 @@ describe('niceTicks', () => {
     expect(min).toBeLessThan(2);
     expect(max).toBeGreaterThan(2);
   });
+
+  it('copes with a reversed or non-finite range (a chart smaller than its margins)', () => {
+    expect(niceTicks(1, 0, 5).ticks).toEqual([0, 0.2, 0.4, 0.6, 0.8, 1]);
+    expect(niceTicks(NaN, 1).ticks).toEqual([]);
+    expect(niceTicks(0, Infinity).ticks).toEqual([]);
+  });
 });

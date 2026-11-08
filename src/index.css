@@ -220,3 +220,15 @@ footer a {
   stroke-width: 1.5;
   stroke-linecap: round;
 }
+
+.t-zero {
+  fill: var(--on-image-dark);
+  stroke: var(--on-image-light);
+  stroke-width: 1.5;
+}
+
+.t-pole {
+  fill: var(--on-image-light);
+  stroke: var(--on-image-dark);
+  stroke-width: 1.5;
+}

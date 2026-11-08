@@ -9,6 +9,9 @@ export function formatNumber(v, digits = 4) {
  * covering [min, max]. Returns the ticks plus the expanded domain they span.
  */
 export function niceTicks(min, max, count = 5) {
+  // No ticks for a range that isn't one (this used to recurse forever).
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return { ticks: [], min, max };
+  if (max < min) [min, max] = [max, min];
   if (!(max > min)) {
     const pad = Math.abs(min) * 0.1 || 1;
     return niceTicks(min - pad, max + pad, count);

@@ -16,6 +16,11 @@
   --tangent-vector: #d11a1a;
   --acceleration: #2e9d3a;
   --negative: #c2410c;
+  /* Marks drawn over images whose colors don't follow the theme (the domain
+     coloring on the complex page): the same in light and dark mode. */
+  --on-image-light: #ffffff;
+  --on-image-dark: #000000;
+  --on-image-grid: rgba(255, 255, 255, 0.35);
   color-scheme: light;
 }
 

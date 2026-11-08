@@ -41,6 +41,9 @@ each, linked from a landing page. Formulas are typeset with [KaTeX](https://kate
 - **Direction fields** (`ode.html`): the slope field of $y' = f(x, y)$; click to start a
   solution curve (traced both ways with Runge–Kutta), hover to preview one, and show the curve
   where $y' = 0$. Examples include equilibria, finite-time blow-up and a failure of uniqueness.
+- **Complex functions** (`complex.html`): domain coloring of $f(z)$ (hue = argument, lightness =
+  modulus) with zeros and poles found and marked with their order, a probe point whose value is
+  shown on the colored $w$-plane, and branch cuts of $\log$ and $\sqrt{\ }$. Drag to move the view.
 - **Riemann zeta function** (`zeta.html`): $\zeta(x)$ for real $x > 1$ with the partial
   sums $\sum_{k=1}^{n} 1/k^x$ and a (logarithmic) slider for $n$.
 
@@ -141,6 +144,8 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/matrix.css` | Matrix input and vector styles shared by the two matrix pages |
 | `src/ode.js` | Direction-field page |
 | `src/odeMath.js` | RK4 step (also used for geodesics), solution curves, the curve f = 0 |
+| `src/complex.js` | Complex-functions page (canvas domain coloring) |
+| `src/complexMath.js` | Complex evaluation of a parse tree, domain colors, zeros, poles, winding numbers |
 | `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
 | `src/zeta.js` | Riemann zeta page |
 

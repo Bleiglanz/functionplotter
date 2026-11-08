@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complex Functions</title>
+    <link rel="stylesheet" href="/src/complex.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Complex functions: the color of \(f(z)\) at each point \(z\)</h1>
+      <a class="home" href="./index.html">← All topics</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <label class="field">
+          <span>\(f(z) =\)</span>
+          <input id="expr" spellcheck="false" />
+        </label>
+
+        <label class="field">
+          <span>Example</span>
+          <select id="preset">
+            <option value="">Choose…</option>
+          </select>
+        </label>
+
+        <fieldset class="range">
+          <legend>Real part \(x\) from</legend>
+          <input id="xMin" spellcheck="false" aria-label="real part min" />
+          <span>to</span>
+          <input id="xMax" spellcheck="false" aria-label="real part max" />
+        </fieldset>
+
+        <fieldset class="range">
+          <legend>Imaginary part \(y\) from</legend>
+          <input id="yMin" spellcheck="false" aria-label="imaginary part min" />
+          <span>to</span>
+          <input id="yMax" spellcheck="false" aria-label="imaginary part max" />
+        </fieldset>
+
+        <div class="buttons">
+          <button id="zoomIn" type="button" aria-label="Zoom in">＋ Zoom in</button>
+          <button id="zoomOut" type="button" aria-label="Zoom out">− Zoom out</button>
+        </div>
+
+        <p class="hint">Drag the picture to move it. Arrow keys move the probe point.</p>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover" class="readout"></span>
+        </figcaption>
+        <div class="plane" id="zPlane">
+          <canvas aria-hidden="true"></canvas>
+          <svg tabindex="0" role="img"></svg>
+        </div>
+        <p class="legend">
+          <i class="key zero"></i> zero (number: its order)
+          <i class="key pole"></i> pole
+        </p>
+      </figure>
+
+      <figure id="wheelChart" class="chart-figure">
+        <figcaption>
+          <span>The value \(w = f(z)\) in the \(w\)-plane, colored the same way: the key to the colors above</span>
+          <span id="wheelHover" class="readout"></span>
+        </figcaption>
+        <div class="plane" id="wPlane">
+          <canvas aria-hidden="true"></canvas>
+          <svg tabindex="0" role="img"></svg>
+        </div>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>What the pictures say</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/complex.js"></script>
+  </body>
+</html>
