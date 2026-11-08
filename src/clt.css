@@ -1,0 +1,86 @@
+@import './page.css';
+
+/* Central-limit-theorem page: the histogram of sample means with the normal
+   curve on top, the distribution of a single draw below. Form controls,
+   readouts and legend keys come from page.css. */
+
+main {
+  grid-template-areas:
+    'controls chart'
+    'controls pop'
+    'controls facts';
+}
+
+#popChart {
+  grid-area: pop;
+}
+
+#chart > svg {
+  height: min(50vh, 440px);
+}
+
+#popChart > svg {
+  height: 200px;
+}
+
+.seed {
+  grid-template-columns: 34px 1fr 88px;
+}
+
+.bar {
+  fill: var(--accent);
+  opacity: 0.55;
+}
+
+.bar.current {
+  opacity: 1;
+}
+
+.normal {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+.population {
+  fill: var(--muted);
+  fill-opacity: 0.25;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+
+.mu {
+  stroke: var(--tangent);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 3;
+}
+
+.sigma {
+  stroke: var(--tangent);
+  stroke-width: 1.5;
+}
+
+.cursor {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
+.tex-label.mu-label > div {
+  color: var(--tangent);
+}
+
+.key.bars {
+  height: 10px;
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+.key.normal {
+  border-top: 2px solid var(--text);
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-areas: 'chart' 'pop' 'controls' 'facts';
+  }
+}

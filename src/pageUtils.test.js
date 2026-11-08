@@ -42,6 +42,8 @@ const PAGES = {
   // src/eigenvectors.js
   eigenvectors: { a: 1.5, b: 1, c: 0.5, d: 1, theta: 60 },
   // src/ode.js
+  // src/clt.js
+  clt: { dist: 'exponential', n: 5, seed: 1, zoom: false },
   // src/complex.js
   complex: { expr: '(z^2 - 1)/(z^2 + 1)', xMin: '-2', xMax: '2', yMin: '-1.5', yMax: '1.5' },
   // src/ode.js
@@ -87,6 +89,7 @@ const FIXTURES = {
   fourier: ['#expr=abs%28x%29&a=-pi&b=pi&n=3', { expr: 'abs(x)', a: '-pi', b: 'pi', n: 3 }],
   'linear-maps': ['#a=0&b=1&c=1&d=0&t=0.5', { a: 0, b: 1, c: 1, d: 0, t: 0.5 }],
   eigenvectors: ['#a=1&b=1&c=0&d=1&theta=45', { a: 1, b: 1, c: 0, d: 1, theta: 45 }],
+  clt: ['#dist=die&n=3&seed=12345&zoom=1', { dist: 'die', n: 3, seed: 12345, zoom: true }],
   complex: ['#expr=sqrt%28z%29&xMin=-2&xMax=2&yMin=-1.5&yMax=1.5', { expr: 'sqrt(z)', xMin: '-2', xMax: '2', yMin: '-1.5', yMax: '1.5' }],
   ode: [
     '#expr=y*%281+-+y%29&xMin=-1&xMax=8&yMin=-0.5&yMax=1.6&starts=0%2C0.05%3B0%2C1.5&nullcline=1',

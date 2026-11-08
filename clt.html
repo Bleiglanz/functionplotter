@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Central Limit Theorem</title>
+    <link rel="stylesheet" href="/src/clt.css" />
+  </head>
+  <body>
+    <header>
+      <h1>The central limit theorem: \(\bar x_n\) is nearly normal for large \(n\)</h1>
+      <a class="home" href="./index.html">← All topics</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <label class="field">
+          <span>Draw from</span>
+          <select id="dist"></select>
+        </label>
+
+        <fieldset class="count">
+          <legend>Draws averaged in each mean</legend>
+          <label for="n">\(n\)</label>
+          <input id="nSlider" type="range" min="1" max="100" step="1" aria-label="n slider" />
+          <input id="n" type="number" min="1" max="400" step="1" />
+        </fieldset>
+
+        <fieldset class="count seed">
+          <legend>Random samples (the link keeps them)</legend>
+          <label for="seed">seed</label>
+          <button id="reseed" type="button">New samples</button>
+          <input id="seed" type="number" min="0" step="1" />
+        </fieldset>
+
+        <label class="check"><input id="zoom" type="checkbox" /> Zoom to the spread \(\sigma/\sqrt{n}\)</label>
+
+        <button id="play" type="button" aria-pressed="false">▶ Increase \(n\)</button>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+        <p class="legend">
+          <i class="key bars"></i> 5000 sample means \(\bar x_n\)
+          <i class="key normal"></i> normal curve with mean \(\mu\) and spread \(\sigma/\sqrt{n}\)
+        </p>
+      </figure>
+
+      <figure id="popChart" class="chart-figure">
+        <figcaption>
+          <span>The distribution each draw comes from, with its mean \(\mu\) and spread \(\sigma\)</span>
+          <span id="popHover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>What the pictures say</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/clt.js"></script>
+  </body>
+</html>
