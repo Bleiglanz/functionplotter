@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eigenvectors</title>
+    <link rel="stylesheet" href="/src/eigenvectors.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Eigenvectors: \(Av = \lambda v\)</h1>
+      <a class="home" href="./index.html">← All topics</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <fieldset class="matrix">
+          <legend>The matrix \(A\)</legend>
+          <span class="paren left" aria-hidden="true"></span>
+          <input id="a" type="number" step="0.05" aria-label="a, row 1 column 1" />
+          <input id="b" type="number" step="0.05" aria-label="b, row 1 column 2" />
+          <input id="c" type="number" step="0.05" aria-label="c, row 2 column 1" />
+          <input id="d" type="number" step="0.05" aria-label="d, row 2 column 2" />
+          <span class="paren right" aria-hidden="true"></span>
+        </fieldset>
+
+        <label class="field">
+          <span>Example</span>
+          <select id="preset">
+            <option value="">Choose…</option>
+          </select>
+        </label>
+
+        <fieldset class="count">
+          <legend>Direction of \(v\) in degrees (or drag \(v\) around the circle)</legend>
+          <label for="theta">\(\theta\)</label>
+          <input id="thetaSlider" type="range" min="0" max="360" step="0.5" aria-label="θ slider" />
+          <input id="theta" type="number" step="any" />
+        </fieldset>
+
+        <button id="play" type="button" aria-pressed="false">▶ Turn \(v\) around</button>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+        <p class="legend">
+          <i class="key v"></i> \(v\) on the unit circle
+          <i class="key e1"></i> \(Av\)
+          <i class="key ellipse"></i> image of the circle
+          <i class="key eigen"></i> eigen-directions
+        </p>
+      </figure>
+
+      <figure id="angleChart" class="chart-figure">
+        <figcaption>
+          <span>Angle from \(v\) to \(Av\) against \(\theta\): \(v\) is an eigenvector where it is \(0^\circ\) (\(\lambda &gt; 0\)) or \(\pm 180^\circ\) (\(\lambda &lt; 0\))</span>
+          <span id="angleHover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>What the pictures say</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/eigenvectors.js"></script>
+  </body>
+</html>

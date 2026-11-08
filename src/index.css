@@ -201,3 +201,15 @@ footer a {
 .t-e2 {
   stroke: var(--slice-y);
 }
+
+.t-ellipse {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.t-eigen {
+  stroke: var(--tangent);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 3;
+}

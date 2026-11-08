@@ -39,6 +39,8 @@ const PAGES = {
   fourier: { expr: 'x < 0 ? -1 : 1', a: '-pi', b: 'pi', n: 5 },
   // src/linear-maps.js
   'linear-maps': { a: 1.5, b: 0.5, c: 0.25, d: 1, t: 1 },
+  // src/eigenvectors.js
+  eigenvectors: { a: 1.5, b: 1, c: 0.5, d: 1, theta: 60 },
 };
 
 // Links shared before the conformance work, with the state they must keep opening (U6).
@@ -79,6 +81,7 @@ const FIXTURES = {
   ],
   fourier: ['#expr=abs%28x%29&a=-pi&b=pi&n=3', { expr: 'abs(x)', a: '-pi', b: 'pi', n: 3 }],
   'linear-maps': ['#a=0&b=1&c=1&d=0&t=0.5', { a: 0, b: 1, c: 1, d: 0, t: 0.5 }],
+  eigenvectors: ['#a=1&b=1&c=0&d=1&theta=45', { a: 1, b: 1, c: 0, d: 1, theta: 45 }],
 };
 
 describe('parseHash / serializeHash', () => {

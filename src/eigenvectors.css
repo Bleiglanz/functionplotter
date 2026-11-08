@@ -1,0 +1,121 @@
+@import './page.css';
+@import './matrix.css';
+
+/* Eigenvector page: the unit circle and its image under A, a turning test
+   vector v with Av, and the angle between them against v's direction. */
+
+main {
+  grid-template-areas:
+    'controls chart'
+    'controls angle'
+    'controls facts';
+}
+
+#angleChart {
+  grid-area: angle;
+}
+
+#chart > svg {
+  height: min(60vh, 520px);
+}
+
+#angleChart > svg {
+  height: 220px;
+  cursor: pointer;
+}
+
+.circle {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.ellipse {
+  fill: var(--accent);
+  fill-opacity: 0.1;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.eigen-line {
+  stroke: var(--tangent);
+  stroke-width: 2;
+  stroke-dasharray: 8 4;
+}
+
+.v-line {
+  stroke: var(--text);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+  opacity: 0.6;
+}
+
+.arrow.v line {
+  stroke: var(--text);
+}
+
+.arrow.v path {
+  fill: var(--text);
+}
+
+/* Av turns from orange to blue when it lies on v's line. */
+.arrow.on-line line {
+  stroke: var(--tangent);
+}
+
+.arrow.on-line path {
+  fill: var(--tangent);
+}
+
+.spoke {
+  stroke: var(--muted);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+.angle-curve {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.reference {
+  stroke: var(--tangent);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.marker {
+  fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.eigen-mark {
+  stroke: var(--tangent);
+  stroke-width: 1.5;
+}
+
+.tex-label.eigen-label > div {
+  color: var(--tangent);
+}
+
+.key.v {
+  border-top: 2.5px solid var(--text);
+}
+
+.key.ellipse {
+  border-top: 2px solid var(--accent);
+}
+
+.key.eigen {
+  border-top: 2px dashed var(--tangent);
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-areas: 'chart' 'angle' 'controls' 'facts';
+  }
+}

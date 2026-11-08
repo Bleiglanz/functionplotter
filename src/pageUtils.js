@@ -121,11 +121,14 @@ export function frame(svg, margin) {
   return { width, height, plotW, plotH, margin, clipUrl: `url(#${id})` };
 }
 
-/** Grid lines and tick labels; xTicks are [value, screen x] pairs. */
-export function axes(svg, { width, height, plotH, margin }, xTicks, yMin, yMax, sy) {
+/**
+ * Grid lines and tick labels; xTicks are [value, screen x] pairs. The y ticks
+ * are nice numbers in [yMin, yMax] unless given as `yTicks` (values).
+ */
+export function axes(svg, { width, height, plotH, margin }, xTicks, yMin, yMax, sy, yTicks) {
   const grid = svgEl('g', { class: 'grid' }, svg);
   const labels = svgEl('g', { class: 'tick-labels' }, svg);
-  for (const t of niceTicks(yMin, yMax, 5).ticks.filter((t) => t >= yMin && t <= yMax)) {
+  for (const t of (yTicks ?? niceTicks(yMin, yMax, 5).ticks).filter((t) => t >= yMin && t <= yMax)) {
     svgEl('line', { x1: margin.left, x2: width - margin.right, y1: sy(t), y2: sy(t), class: t === 0 ? 'zero' : '' }, grid);
     svgEl('text', { x: margin.left - 6, y: sy(t), 'text-anchor': 'end', 'dominant-baseline': 'middle' }, labels).textContent = num(t, 3);
   }

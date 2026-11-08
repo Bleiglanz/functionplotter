@@ -249,7 +249,7 @@ function describe(kind) {
 
 /** The eigenvector page's hash for this matrix, escaped for an href. */
 function eigenHash({ a, b, c, d }) {
-  return serializeHash({ a, b, c, d, theta: 30 }).replaceAll('&', '&amp;');
+  return serializeHash({ a, b, c, d, theta: 60 }).replaceAll('&', '&amp;');
 }
 
 function facts(state) {
