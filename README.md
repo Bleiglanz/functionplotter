@@ -29,6 +29,9 @@ each, linked from a landing page. Formulas are typeset with [KaTeX](https://kate
   doubling time / half-life, asymptote, range, zeros, convexity and inverse.
 - **Fundamental theorem of calculus** (`ftc.html`): $f$ with the signed area from $a$
   to a draggable $b$, and above it $F(x) = \int_a^x f$ with its tangent at $b$, of slope $f(b)$.
+- **Fourier series** (`fourier.html`): one period of $f$, repeated, and its partial sums $S_n$
+  with a slider for the number of harmonics; the overshoot next to a jump (Gibbs phenomenon)
+  is marked, and a second chart shows how fast the harmonics shrink.
 - **Riemann zeta function** (`zeta.html`): $\zeta(x)$ for real $x > 1$ with the partial
   sums $\sum_{k=1}^{n} 1/k^x$ and a (logarithmic) slider for $n$.
 
@@ -121,6 +124,8 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/sequencesMath.js` | Limit estimate and N(ε) for a sequence |
 | `src/epsilon-delta.js` | ε–δ continuity page |
 | `src/epsilonDeltaMath.js` | Largest deviation over a window, largest working δ |
+| `src/fourier.js` | Fourier series page |
+| `src/fourierMath.js` | Fourier coefficients (midpoint rule), partial sums, jumps |
 | `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
 | `src/zeta.js` | Riemann zeta page |
 

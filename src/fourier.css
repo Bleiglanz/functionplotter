@@ -1,0 +1,99 @@
+@import './page.css';
+
+/* Fourier page: f and the partial sum Sₙ on top, the size of each harmonic
+   below. Form controls, readouts and legend keys come from page.css. */
+
+main {
+  grid-template-areas:
+    'controls chart'
+    'controls spectrum'
+    'controls facts';
+}
+
+#spectrumChart {
+  grid-area: spectrum;
+}
+
+#chart > svg {
+  height: min(50vh, 420px);
+}
+
+#spectrumChart > svg {
+  height: 220px;
+  cursor: pointer;
+}
+
+/* --- Marks ------------------------------------------------------------------ */
+
+.curve {
+  stroke: var(--text);
+  stroke-width: 1.5;
+  opacity: 0.7;
+}
+
+.sum {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.period {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.overshoot {
+  stroke: var(--negative);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.overshoot-dot {
+  fill: var(--negative);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.tex-label.overshoot-label > div {
+  color: var(--negative);
+}
+
+.cursor {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
+.bar {
+  fill: var(--muted);
+  opacity: 0.45;
+}
+
+.bar.used {
+  fill: var(--accent);
+  opacity: 1;
+}
+
+.bar.current {
+  fill: var(--text);
+  opacity: 1;
+}
+
+.key.curve {
+  border-top: 2px solid var(--text);
+}
+
+.key.sum {
+  border-top: 2.5px solid var(--accent);
+}
+
+.key.overshoot {
+  border-top: 2px dashed var(--negative);
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-areas: 'chart' 'spectrum' 'controls' 'facts';
+  }
+}

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fourier Series</title>
+    <link rel="stylesheet" href="/src/fourier.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Fourier series: \(S_n(x) = a_0 + \sum_{k=1}^{n} \bigl(a_k \cos k\omega x + b_k \sin k\omega x\bigr)\)</h1>
+      <a class="home" href="./index.html">← All topics</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <label class="field">
+          <span>\(f(x) =\)</span>
+          <input id="expr" spellcheck="false" />
+        </label>
+
+        <label class="field">
+          <span>Example</span>
+          <select id="preset">
+            <option value="">Choose…</option>
+          </select>
+        </label>
+
+        <fieldset class="range">
+          <legend>One period, repeated: \(x\) from</legend>
+          <input id="a" spellcheck="false" aria-label="period start" />
+          <span>to</span>
+          <input id="b" spellcheck="false" aria-label="period end" />
+        </fieldset>
+
+        <fieldset class="count">
+          <legend>Number of harmonics</legend>
+          <label for="n">\(n\)</label>
+          <input id="nSlider" type="range" min="0" max="100" step="1" aria-label="n slider" />
+          <input id="n" type="number" min="0" max="100" step="1" />
+        </fieldset>
+
+        <button id="play" type="button" aria-pressed="false">▶ Add harmonics</button>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+        <p class="legend">
+          <i class="key curve"></i> \(f\), repeated
+          <i class="key sum"></i> \(S_n\)
+          <i class="key overshoot"></i> overshoot at a jump
+        </p>
+      </figure>
+
+      <figure id="spectrumChart" class="chart-figure">
+        <figcaption>
+          <span>Size of each harmonic, \(\sqrt{a_k^2 + b_k^2}\), on a log scale (\(j\) on the axis means \(10^{j}\)); click a bar to set \(n\)</span>
+          <span id="spectrumHover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>What the pictures say</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/fourier.js"></script>
+  </body>
+</html>
