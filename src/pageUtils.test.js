@@ -33,6 +33,8 @@ const PAGES = {
   taylor: { expr: 'sin(x)', xMin: '-7', xMax: '7', x0: 0, n: 3 },
   // src/sequences.js
   sequences: { expr: '1 + 2*(-1)^n/n', L: '', eps: 0.25, nMax: 40 },
+  // src/epsilon-delta.js
+  'epsilon-delta': { expr: 'x^2', xMin: '-0.5', xMax: '2.5', x0: 1, eps: 0.5, delta: 0.5 },
 };
 
 // Links shared before the conformance work, with the state they must keep opening (U6).
@@ -66,6 +68,10 @@ const FIXTURES = {
   sequences: [
     '#expr=1%2Fn&L=0.1&eps=0.05&nMax=40',
     { expr: '1/n', L: '0.1', eps: 0.05, nMax: 40 },
+  ],
+  'epsilon-delta': [
+    '#expr=x+%3C+1+%3F+x+%3A+x+%2B+1&xMin=-0.5&xMax=2.5&x0=1&eps=0.5&delta=0.3',
+    { expr: 'x < 1 ? x : x + 1', xMin: '-0.5', xMax: '2.5', x0: 1, eps: 0.5, delta: 0.3 },
   ],
 };
 

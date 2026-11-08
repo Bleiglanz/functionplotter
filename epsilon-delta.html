@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Epsilon–Delta Continuity</title>
+    <link rel="stylesheet" href="/src/epsilon-delta.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Continuity: \(|x - x_0| &lt; \delta \Rightarrow |f(x) - f(x_0)| &lt; \varepsilon\)</h1>
+      <a class="home" href="./index.html">← All topics</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <label class="field">
+          <span>\(f(x) =\)</span>
+          <input id="expr" spellcheck="false" />
+        </label>
+
+        <label class="field">
+          <span>Example</span>
+          <select id="preset">
+            <option value="">Choose…</option>
+          </select>
+        </label>
+
+        <fieldset class="range">
+          <legend>View \(x\) from</legend>
+          <input id="xMin" spellcheck="false" aria-label="x min" />
+          <span>to</span>
+          <input id="xMax" spellcheck="false" aria-label="x max" />
+        </fieldset>
+
+        <fieldset class="count">
+          <legend>The point</legend>
+          <label for="x0">\(x_0\)</label>
+          <input id="x0Slider" type="range" aria-label="x₀ slider" />
+          <input id="x0" type="number" step="any" />
+        </fieldset>
+
+        <fieldset class="count">
+          <legend>1. Choose how close \(f(x)\) must stay to \(f(x_0)\)</legend>
+          <label for="eps">\(\varepsilon\)</label>
+          <input id="epsSlider" type="range" min="-3" max="1" step="0.01" aria-label="ε slider (logarithmic)" />
+          <input id="eps" type="number" min="0" step="any" />
+        </fieldset>
+
+        <fieldset class="count">
+          <legend>2. Find a window that works (or drag its edge in the chart)</legend>
+          <label for="delta">\(\delta\)</label>
+          <input id="deltaSlider" type="range" step="0.001" aria-label="δ slider (logarithmic)" />
+          <input id="delta" type="number" min="0" step="any" />
+        </fieldset>
+
+        <div class="buttons">
+          <button id="answer" type="button" aria-pressed="false" disabled>Show the largest \(\delta\)</button>
+          <button id="zoom" type="button">Zoom to the window</button>
+        </div>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+        <p class="legend">
+          <i class="key band"></i> \(f(x_0) \pm \varepsilon\)
+          <i class="key window"></i> \(x_0 \pm \delta\)
+          <i class="key ok"></i> inside the band
+          <i class="key bad"></i> leaves the band
+        </p>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>What the picture says</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/epsilon-delta.js"></script>
+  </body>
+</html>

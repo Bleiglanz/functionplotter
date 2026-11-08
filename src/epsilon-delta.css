@@ -1,0 +1,114 @@
+@import './page.css';
+
+/* ε–δ page: f with the band f(x₀) ± ε and the window x₀ ± δ. Form controls,
+   readouts and legend keys come from page.css. */
+
+#chart > svg {
+  cursor: ew-resize;
+}
+
+/* --- Marks ------------------------------------------------------------------ */
+
+.curve {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+
+.band {
+  fill: var(--accent);
+  opacity: 0.12;
+}
+
+.band-edge {
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+
+.window {
+  fill: var(--tangent);
+  opacity: 0.1;
+}
+
+.window-edge {
+  stroke: var(--tangent);
+  stroke-width: 2;
+}
+
+.answer-edge {
+  stroke: var(--text);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 3;
+}
+
+.ok,
+.bad {
+  fill: none;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.ok {
+  stroke: var(--accent);
+}
+
+.bad {
+  stroke: var(--negative);
+}
+
+.worst {
+  stroke: var(--negative);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+}
+
+.point-p {
+  fill: var(--text);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.worst-dot {
+  fill: var(--negative);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.tex-label.window-label > div {
+  color: var(--tangent);
+}
+
+.tex-label.band-label > div {
+  color: var(--accent);
+}
+
+.tex-label.bad-label > div {
+  color: var(--negative);
+}
+
+.tex-label.answer-label > div {
+  color: var(--text);
+}
+
+.key.band,
+.key.window {
+  height: 10px;
+  opacity: 0.3;
+}
+
+.key.band {
+  background: var(--accent);
+}
+
+.key.window {
+  background: var(--tangent);
+}
+
+.key.ok {
+  border-top: 3px solid var(--accent);
+}
+
+.key.bad {
+  border-top: 3px solid var(--negative);
+}

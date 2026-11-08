@@ -168,3 +168,16 @@ footer a {
 .t-dots.in circle {
   fill: var(--accent);
 }
+
+.t-window {
+  fill: color-mix(in srgb, var(--tangent) 16%, transparent);
+  stroke: var(--tangent);
+  stroke-width: 1.5;
+}
+
+.t-ok {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+}

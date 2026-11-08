@@ -17,6 +17,9 @@ each, linked from a landing page. Formulas are typeset with [KaTeX](https://kate
 - **Sequences and convergence** (`sequences.html`): the terms $a_n$ as dots with a band
   $L \pm \varepsilon$ around the limit and the index $N(\varepsilon)$ from which every term stays
   inside it; drag the band's width, and see in a second chart how $N$ grows as $\varepsilon$ shrinks.
+- **ε–δ continuity** (`epsilon-delta.html`): set $\varepsilon$, then search for a $\delta$ by dragging
+  the window $|x - x_0| < \delta$; where the graph over the window leaves the band
+  $f(x_0) \pm \varepsilon$ it turns red. The largest $\delta$ is shown on request, after you have tried.
 - **Riemann sums** (`riemann.html`): how $\int_a^b f(x)\,dx$ arises from sums over
   equidistant partitions.
 - **Exponential functions** (`exponential.html`): sliders for $a$, $b$, $c$ and $d$ in
@@ -116,6 +119,8 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/taylorMath.js` | Taylor coefficients by power-series arithmetic on the parse tree |
 | `src/sequences.js` | Sequences page |
 | `src/sequencesMath.js` | Limit estimate and N(ε) for a sequence |
+| `src/epsilon-delta.js` | ε–δ continuity page |
+| `src/epsilonDeltaMath.js` | Largest deviation over a window, largest working δ |
 | `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
 | `src/zeta.js` | Riemann zeta page |
 
