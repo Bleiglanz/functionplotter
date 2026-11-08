@@ -68,7 +68,7 @@ header p {
   outline-offset: 2px;
 }
 
-.topics svg {
+.topics a > svg {
   display: block;
   width: 100%;
   height: 96px;
@@ -231,4 +231,26 @@ footer a {
   fill: var(--on-image-light);
   stroke: var(--on-image-dark);
   stroke-width: 1.5;
+}
+
+/* The hue wheel of the complex-functions card, from theme colors. */
+.t-hue stop:nth-child(1),
+.t-hue stop:nth-child(6) {
+  stop-color: var(--slice-y);
+}
+
+.t-hue stop:nth-child(2) {
+  stop-color: var(--slice-x);
+}
+
+.t-hue stop:nth-child(3) {
+  stop-color: var(--acceleration);
+}
+
+.t-hue stop:nth-child(4) {
+  stop-color: var(--accent);
+}
+
+.t-hue stop:nth-child(5) {
+  stop-color: var(--tangent);
 }
