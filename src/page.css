@@ -352,7 +352,7 @@ fieldset {
   vertical-align: middle;
 }
 
-.key:first-child {
+p.legend > .key:first-child {
   margin-left: 0;
 }
 
