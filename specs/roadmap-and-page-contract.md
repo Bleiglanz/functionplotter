@@ -164,8 +164,8 @@ working, and record the roadmap and the decisions in this spec.
     evaluates the parse tree on truncated power series instead: exact up to
     rounding, and fast to order 40. Cost: each math.js function needs its own
     rule; functions without one get an error message.
-*   **Q3**: In which order are the roadmap topics built? The roadmap suggests
-    an order based on reuse; the owner decides.
+*   **Q3** (moot for the first ten topics, all built): in which order are
+    new roadmap topics built? The owner decides.
 
 ## Critical User Journeys (CUJs)
 
@@ -252,22 +252,14 @@ picture shows the concept, drop it from the roadmap.
 
 ### Topic roadmap
 
-An entry is deleted when its page ships. Suggested order (not decided, Q3):
-(a) conformance work (done); (b) secant derivative (done), Taylor polynomials (done),
-sequences, ε–δ (reuse the SVG helpers); (c) linear maps, eigenvectors;
-(d) Fourier series, ODE direction fields, central limit theorem, complex
-functions (need new infrastructure).
+An entry is deleted when its page ships. All ten planned topics have
+shipped (the last eight in commits `db7d00b` to `7252414`); the roadmap is
+empty until the owner adds topics. A new entry names its page file, level,
+core picture and interaction, math module, what it reuses and what
+infrastructure it still needs, and related pages:
 
 | Page (planned file) | Level | Core picture and interaction | Math module | Reuses / needs | Links |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Sequences and convergence (`sequences.html`) | HS–UG | Terms aₙ as dots with an ε-band around the limit; slider ε shows N(ε) | N(ε) search, limits | SVG helpers / none | epsilon-delta (Q1) |
-| ε–δ continuity (`epsilon-delta.html`) | UG | Band of half-height ε around f(x₀) and a window of half-width δ around x₀; the learner sets ε, then searches for a δ that works by dragging the window. Parts of the graph over the window that leave the band are highlighted, so the learner sees why a δ fails. A "show answer" control reveals the largest δ only after the learner has tried. | check of a given δ (largest deviation of f over the window), largest valid δ for the answer | SVG helpers / none | sequences (Q1) |
-| Fourier series (`fourier.html`) | UG | Partial sums of a periodic function; slider for the number of terms, Gibbs overshoot visible | coefficients by numeric integration | `integral.js` / none | riemann |
-| Linear maps in 2D (`linear-maps.html`) | HS–UG | Unit square and grid under a 2×2 matrix; drag the images of e₁, e₂ | matrix ops, determinant | SVG helpers / **matrix encoding in the hash, equal-scale axes, arrows** | eigenvectors |
-| Eigenvectors (`eigenvectors.html`) | UG | Unit circle under a matrix; directions that stay on their line are highlighted | eigen decomposition (2×2) | linear-maps infrastructure / same gaps (Q1: one page or two) | linear maps |
-| ODE direction fields (`ode.html`) | UG | Arrow field of y′ = f(x, y); click to start a solution curve | RK4 stepper | `expression.js` / **RK4 extracted from `surface.js`**, arrows | — |
-| Complex functions (`complex.html`) | UG | Domain coloring of f(z); hover shows f(z) | complex evaluation | — / **complex evaluation path, canvas drawing; redraw speed must be measured, and dragging may need a lower resolution** | — |
-| Distributions and the CLT (`clt.html`) | HS–UG | Histogram of sample means approaching the normal curve; slider for sample size | seeded random generator, densities | SVG helpers / **seed in the hash, seeded generator** | — |
 
 HS = high school, UG = undergraduate. Bold gaps get their convention in
 `AGENTS.md` in the same change as the first page that needs it. The spec only records that the gap exists.
