@@ -245,14 +245,13 @@ picture shows the concept, drop it from the roadmap.
 ### Topic roadmap
 
 An entry is deleted when its page ships. Suggested order (not decided, Q3):
-(a) conformance work (done); (b) secant derivative (done), Taylor polynomials,
+(a) conformance work (done); (b) secant derivative (done), Taylor polynomials (done),
 sequences, ε–δ (reuse the SVG helpers); (c) linear maps, eigenvectors;
 (d) Fourier series, ODE direction fields, central limit theorem, complex
 functions (need new infrastructure).
 
 | Page (planned file) | Level | Core picture and interaction | Math module | Reuses / needs | Links |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Taylor polynomials (`taylor.html`) | HS–UG | f and its degree-n Taylor polynomial at x₀; slider n, drag x₀ | coefficients, remainder | SVG helpers / derivatives of order n (Q2) | derivative |
 | Sequences and convergence (`sequences.html`) | HS–UG | Terms aₙ as dots with an ε-band around the limit; slider ε shows N(ε) | N(ε) search, limits | SVG helpers / none | epsilon-delta (Q1) |
 | ε–δ continuity (`epsilon-delta.html`) | UG | Band of half-height ε around f(x₀) and a window of half-width δ around x₀; the learner sets ε, then searches for a δ that works by dragging the window. Parts of the graph over the window that leave the band are highlighted, so the learner sees why a δ fails. A "show answer" control reveals the largest δ only after the learner has tried. | check of a given δ (largest deviation of f over the window), largest valid δ for the answer | SVG helpers / none | sequences (Q1) |
 | Fourier series (`fourier.html`) | UG | Partial sums of a periodic function; slider for the number of terms, Gibbs overshoot visible | coefficients by numeric integration | `integral.js` / none | riemann |
