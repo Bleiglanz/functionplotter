@@ -151,7 +151,12 @@ working, and record the roadmap and the decisions in this spec.
     other. ε–N and ε–δ are two pages (`sequences.html`,
     `epsilon-delta.html`): one concept each (a sequence's limit, a function's
     continuity at a point) with different pictures (dots against n, a graph
-    over a window around x₀); they link to each other.
+    over a window around x₀); they link to each other. Linear maps and
+    eigenvectors are two pages (`linear-maps.html`, `eigenvectors.html`): the
+    first is about what a matrix does to the whole plane (columns,
+    determinant), the second about the directions it keeps; they share
+    `linearMath.js`, the hash keys `a`–`d` and `matrix.css`, and link to each
+    other with the current matrix.
 *   **Q2** (decided with the Taylor page): neither symbolic nor numeric
     differentiation. Repeated math.js `derivative` grows the expression
     exponentially (five derivatives of 1/(1 + x²) took 7.7 s), and finite

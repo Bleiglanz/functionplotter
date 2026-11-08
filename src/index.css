@@ -181,3 +181,23 @@ footer a {
   stroke-width: 3;
   stroke-linecap: round;
 }
+
+.t-para {
+  fill: color-mix(in srgb, var(--accent) 22%, transparent);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.t-e1,
+.t-e2 {
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.t-e1 {
+  stroke: var(--slice-x);
+}
+
+.t-e2 {
+  stroke: var(--slice-y);
+}

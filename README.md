@@ -32,6 +32,9 @@ each, linked from a landing page. Formulas are typeset with [KaTeX](https://kate
 - **Fourier series** (`fourier.html`): one period of $f$, repeated, and its partial sums $S_n$
   with a slider for the number of harmonics; the overshoot next to a jump (Gibbs phenomenon)
   is marked, and a second chart shows how fast the harmonics shrink.
+- **Linear maps in 2D** (`linear-maps.html`): a 2×2 matrix acting on the plane. Drag the
+  images of $e_1$ and $e_2$ (the columns) and watch the grid, the unit square (area $|\det A|$)
+  and a letter F (orientation) follow; a slider moves from the identity to $A$.
 - **Riemann zeta function** (`zeta.html`): $\zeta(x)$ for real $x > 1$ with the partial
   sums $\sum_{k=1}^{n} 1/k^x$ and a (logarithmic) slider for $n$.
 
@@ -126,6 +129,9 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/epsilonDeltaMath.js` | Largest deviation over a window, largest working δ |
 | `src/fourier.js` | Fourier series page |
 | `src/fourierMath.js` | Fourier coefficients (midpoint rule), partial sums, jumps |
+| `src/linear-maps.js` | Linear-maps page |
+| `src/linearMath.js` | 2×2 matrices: determinant, inverse, eigenvalues, classification |
+| `src/matrix.css` | Matrix input and vector styles shared by the two matrix pages |
 | `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
 | `src/zeta.js` | Riemann zeta page |
 

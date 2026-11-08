@@ -1,0 +1,57 @@
+@import './page.css';
+
+/* Linear-maps page: the plane before and after a 2×2 matrix. Form controls,
+   readouts and legend keys come from page.css; the matrix input and the
+   plane marks are shared with the eigenvector page (matrix.css). */
+
+@import './matrix.css';
+
+#chart > svg {
+  height: min(70vh, 620px);
+}
+
+.grid-image line {
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.35;
+}
+
+.grid-image line.axis {
+  opacity: 0.8;
+  stroke-width: 1.5;
+}
+
+.square-image {
+  fill: var(--accent);
+  fill-opacity: 0.18;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.square {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+/* A letter F, to show whether A keeps or flips orientation. */
+.letter {
+  fill: var(--muted);
+  opacity: 0.35;
+}
+
+.letter-image {
+  fill: var(--text);
+  opacity: 0.75;
+}
+
+.key.square {
+  height: 10px;
+  background: var(--accent);
+  opacity: 0.3;
+}
+
+.key.grid {
+  border-top: 1px solid var(--accent);
+}

@@ -37,6 +37,8 @@ const PAGES = {
   'epsilon-delta': { expr: 'x^2', xMin: '-0.5', xMax: '2.5', x0: 1, eps: 0.5, delta: 0.5 },
   // src/fourier.js
   fourier: { expr: 'x < 0 ? -1 : 1', a: '-pi', b: 'pi', n: 5 },
+  // src/linear-maps.js
+  'linear-maps': { a: 1.5, b: 0.5, c: 0.25, d: 1, t: 1 },
 };
 
 // Links shared before the conformance work, with the state they must keep opening (U6).
@@ -76,6 +78,7 @@ const FIXTURES = {
     { expr: 'x < 1 ? x : x + 1', xMin: '-0.5', xMax: '2.5', x0: 1, eps: 0.5, delta: 0.3 },
   ],
   fourier: ['#expr=abs%28x%29&a=-pi&b=pi&n=3', { expr: 'abs(x)', a: '-pi', b: 'pi', n: 3 }],
+  'linear-maps': ['#a=0&b=1&c=1&d=0&t=0.5', { a: 0, b: 1, c: 1, d: 0, t: 0.5 }],
 };
 
 describe('parseHash / serializeHash', () => {
