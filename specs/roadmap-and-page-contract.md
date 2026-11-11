@@ -54,11 +54,12 @@ page grew with them. That has three costs:
     tests. The README uses `<sup>` for math, which pages may not. An agent
     that copies an existing page as a starting point copies these
     deviations; this is how the four copies came about.
-*   **There is no plan for what comes next.** The owner wants ten more topics,
-    but nothing records their order, which ones need infrastructure the
-    project lacks (canvas drawing, complex numbers, random sampling, matrices
-    in the URL), or how overlapping topics relate to each other and to
-    existing pages.
+*   **There was no plan for what comes next.** The owner wanted ten more
+    topics, but nothing recorded which ones needed infrastructure the project
+    lacked (canvas drawing, complex numbers, random sampling, matrices in the
+    URL), or how overlapping topics related to each other and to existing
+    pages. All ten have since shipped; the roadmap below holds future
+    topics.
 
 Checking is the weak point underneath all three. Only the math modules have
 tests, and browser behaviour has been checked by hand or with throwaway
@@ -81,15 +82,12 @@ working, and record the roadmap and the decisions in this spec.
 *   **G2. Page-admission rule.** A rule for when a topic gets its own page, based on the owner's rule (one concept, a clear visual
     representation, relatively self-contained), with one example that passes,
     one that fails, and what happens to a topic that fails.
-*   **G3. Topic roadmap.** An entry for each of the ten planned topics (secant
-    slopes and the derivative, Taylor polynomials, sequences and convergence,
-    ε–δ, Fourier series, linear maps in 2D, eigenvectors, ODE direction fields,
-    complex functions, probability distributions and the central limit
-    theorem). Each entry names its page file, level, core picture and main
-    interaction, math module, what it reuses and what infrastructure it still
-    needs, and links to related pages. Topics that need new infrastructure
-    stay in the roadmap with their gaps named. An entry is deleted when its
-    page ships.
+*   **G3. Topic roadmap.** An entry for each planned topic, naming its page
+    file, level, core picture and main interaction, math module, what it
+    reuses and what infrastructure it still needs, and links to related
+    pages. Topics that need new infrastructure stay in the roadmap with their
+    gaps named. An entry is deleted when its page ships. (The first ten
+    topics have all shipped this way.)
 *   **G4. Existing pages in line.** After the conformance work, each of the
     five pages either meets every rule in its layer or has a named exception
     with a reason in this spec. Measured by: no helper exists in more than one
@@ -133,8 +131,8 @@ working, and record the roadmap and the decisions in this spec.
 *   **A framework, TypeScript, a server, analytics or a CDN.**
 *   **An installable app or cache-first offline mode.** "Offline" means all
     assets are bundled and nothing is fetched while the page runs.
-*   **A fixed schedule for the roadmap.** The spec may suggest an order based
-    on reuse; the owner decides.
+*   **A fixed schedule for the roadmap.** The owner decides in which order
+    topics are built.
 *   **Changes to the KaTeX rules** or to the exception for the 3D view's
     canvas labels.
 *   **Restating `AGENTS.md`.** This spec refers to rules by number; it does
@@ -142,10 +140,9 @@ working, and record the roadmap and the decisions in this spec.
 
 ## Open Questions
 
-*   **Q1**: How are overlapping topics split or merged: ε–δ versus ε–N in
-    sequences, linear maps and eigenvectors as one page or two? The admission
-    rule (below) gives the test; each case is decided when the topic is picked
-    up. Decided so far: the secant derivative got its own page
+*   **Q1** (decided for the first ten topics): How are overlapping topics
+    split or merged? The admission rule (below) gives the test; a future
+    overlap is decided when its topic is picked up. Decisions: the secant derivative got its own page
     (`derivative.html`), because the FTC page's main picture is the area
     building F, not the limit of secant slopes; the two pages link to each
     other. ε–N and ε–δ are two pages (`sequences.html`,
@@ -164,8 +161,6 @@ working, and record the roadmap and the decisions in this spec.
     evaluates the parse tree on truncated power series instead: exact up to
     rounding, and fast to order 40. Cost: each math.js function needs its own
     rule; functions without one get an error message.
-*   **Q3** (moot for the first ten topics, all built): in which order are
-    new roadmap topics built? The owner decides.
 
 ## Critical User Journeys (CUJs)
 
@@ -252,17 +247,13 @@ picture shows the concept, drop it from the roadmap.
 
 ### Topic roadmap
 
-An entry is deleted when its page ships. All ten planned topics have
-shipped (the last eight in commits `db7d00b` to `7252414`); the roadmap is
-empty until the owner adds topics. A new entry names its page file, level,
-core picture and interaction, math module, what it reuses and what
-infrastructure it still needs, and related pages:
-
-| Page (planned file) | Level | Core picture and interaction | Math module | Reuses / needs | Links |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-
-HS = high school, UG = undergraduate. Bold gaps get their convention in
-`AGENTS.md` in the same change as the first page that needs it. The spec only records that the gap exists.
+Empty: all ten planned topics have shipped, and an entry is deleted when its
+page ships. When the owner adds a topic, its entry goes in a table with the
+columns Page (planned file), Level (HS = high school, UG = undergraduate),
+Core picture and interaction, Math module, Reuses / needs, and Links. A gap
+in infrastructure is written in bold; it gets its convention in `AGENTS.md`
+in the same change as the first page that needs it, and the spec only
+records that the gap exists.
 
 ### Manual checklist
 
