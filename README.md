@@ -48,6 +48,9 @@ each, linked from a landing page. Formulas are typeset with [KaTeX](https://kate
 - **Central limit theorem** (`clt.html`): 5000 means of $n$ draws from a chosen distribution
   (uniform, exponential, a die, a biased coin, U-shaped, two humps) as a histogram with the normal
   curve of spread $\sigma/\sqrt{n}$; the random seed is in the URL, so a link shows the same samples.
+- **Stereographic projection** (`stereographic.html`): click a point $P$ of the unit sphere (or the
+  plane) and see the line from the north pole through $P$ meet the plane at $z$; parallels and meridians
+  go to circles and rays, and $N$ goes to $\infty$.
 - **Riemann zeta function** (`zeta.html`): $\zeta(x)$ for real $x > 1$ with the partial
   sums $\sum_{k=1}^{n} 1/k^x$ and a (logarithmic) slider for $n$.
 
@@ -152,6 +155,8 @@ undefined. The unit circle is measured in the surface's own units, so with
 | `src/complexMath.js` | Complex evaluation of a parse tree, domain colors, zeros, poles, winding numbers |
 | `src/clt.js` | Central-limit-theorem page |
 | `src/cltMath.js` | Seeded random generator, distributions, histograms, normal curve |
+| `src/stereographic.js` | Stereographic projection page (three.js sphere, SVG plane) |
+| `src/stereographicMath.js` | Projection from the north pole and its inverse, latitude/longitude |
 | `src/zetaMath.js` | ζ(x) by Euler–Maclaurin, partial sums, tail bounds |
 | `src/zeta.js` | Riemann zeta page |
 

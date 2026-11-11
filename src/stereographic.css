@@ -1,0 +1,185 @@
+@import './page.css';
+
+/* Stereographic projection page: the unit sphere and the plane of its
+   equator in 3D (three.js, with KaTeX labels laid over the canvas), and the
+   plane seen from above as an SVG chart. Form controls, readouts and legend
+   keys come from page.css; the 3D view reads its colors from the variables
+   below, so both themes follow theme.css. */
+
+:root {
+  --ray: var(--accent);
+  --parallel: var(--slice-x);
+  --meridian: var(--slice-y);
+  --equator: var(--text);
+  --sphere: var(--accent);
+}
+
+main {
+  grid-template-columns: 300px minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'controls chart plane'
+    'controls facts facts';
+}
+
+#planeChart {
+  grid-area: plane;
+}
+
+.intro {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* --- 3D view ------------------------------------------------------------------ */
+
+#scene {
+  position: relative;
+  height: min(60vh, 460px);
+  touch-action: none;
+  cursor: grab;
+  border-radius: 4px;
+}
+
+#scene:active {
+  cursor: grabbing;
+}
+
+#scene:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+#scene > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#scene .labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#scene .labels > div {
+  position: absolute;
+  transform: translate(6px, -100%);
+  font-size: 15px;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+#scene .labels > .below {
+  transform: translate(6px, 2px);
+}
+
+#scene .labels > .ray {
+  color: var(--ray);
+}
+
+#planeChart > svg {
+  height: min(60vh, 460px);
+  cursor: crosshair;
+}
+
+/* --- Marks in the plane ---------------------------------------------------------- */
+
+.image-grid {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1;
+  opacity: 0.35;
+}
+
+.equator {
+  fill: none;
+  stroke: var(--equator);
+  stroke-width: 1.5;
+}
+
+.parallel {
+  fill: none;
+  stroke: var(--parallel);
+  stroke-width: 2;
+}
+
+.meridian {
+  fill: none;
+  stroke: var(--meridian);
+  stroke-width: 2;
+}
+
+.zpoint {
+  fill: var(--ray);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.origin {
+  fill: var(--text);
+}
+
+.arrow.far line {
+  stroke: var(--ray);
+  stroke-width: 2;
+}
+
+.arrow.far path {
+  fill: var(--ray);
+}
+
+.hover-dot {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+
+.tex-label.z-label > div {
+  color: var(--ray);
+}
+
+.tex-label.muted-label > div {
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+/* --- Legend keys ------------------------------------------------------------------- */
+
+.key.ray {
+  border-top: 2.5px solid var(--ray);
+}
+
+.key.parallel {
+  border-top: 2px solid var(--parallel);
+}
+
+.key.meridian {
+  border-top: 2px solid var(--meridian);
+}
+
+.key.equator {
+  border-top: 1.5px solid var(--equator);
+}
+
+@media (max-width: 1100px) {
+  main {
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-areas:
+      'controls chart'
+      'controls plane'
+      'controls facts';
+  }
+}
+
+@media (max-width: 760px) {
+  main {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'chart' 'plane' 'controls' 'facts';
+  }
+
+  #scene,
+  #planeChart > svg {
+    height: 50vh;
+  }
+}

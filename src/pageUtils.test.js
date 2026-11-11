@@ -47,6 +47,8 @@ const PAGES = {
   // src/complex.js
   complex: { expr: '(z^2 - 1)/(z^2 + 1)', xMin: '-2', xMax: '2', yMin: '-1.5', yMax: '1.5' },
   // src/ode.js
+  // src/stereographic.js
+  stereographic: { lat: 30, lon: 40, grid: true },
   ode: { expr: 'x - y', xMin: '-3', xMax: '3', yMin: '-3', yMax: '3', starts: '-3,2;-3,-2;-1,-3;0,0', nullcline: false },
 };
 
@@ -91,6 +93,7 @@ const FIXTURES = {
   eigenvectors: ['#a=1&b=1&c=0&d=1&theta=45', { a: 1, b: 1, c: 0, d: 1, theta: 45 }],
   clt: ['#dist=die&n=3&seed=12345&zoom=1', { dist: 'die', n: 3, seed: 12345, zoom: true }],
   complex: ['#expr=sqrt%28z%29&xMin=-2&xMax=2&yMin=-1.5&yMax=1.5', { expr: 'sqrt(z)', xMin: '-2', xMax: '2', yMin: '-1.5', yMax: '1.5' }],
+  stereographic: ['#lat=-35&lon=-60&grid=0', { lat: -35, lon: -60, grid: false }],
   ode: [
     '#expr=y*%281+-+y%29&xMin=-1&xMax=8&yMin=-0.5&yMax=1.6&starts=0%2C0.05%3B0%2C1.5&nullcline=1',
     { expr: 'y*(1 - y)', xMin: '-1', xMax: '8', yMin: '-0.5', yMax: '1.6', starts: '0,0.05;0,1.5', nullcline: true },

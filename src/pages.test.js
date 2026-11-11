@@ -14,7 +14,7 @@ const local = (href) => href.replace(/^\//, '');
 // The surface plotter follows the universal rules only (see "Named exceptions" in AGENTS.md).
 const EXEMPT_FROM_2D_RULES = ['surface'];
 // Pages that parse no user expression and so must not load math.js (U9).
-const NO_EXPRESSION = ['clt', 'eigenvectors', 'exponential', 'linear-maps', 'zeta'];
+const NO_EXPRESSION = ['clt', 'eigenvectors', 'exponential', 'linear-maps', 'stereographic', 'zeta'];
 
 const index = read('index.html');
 const readme = read('README.md');

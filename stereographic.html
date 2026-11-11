@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stereographic Projection</title>
+    <link rel="stylesheet" href="/src/stereographic.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Stereographic projection: \(z = \dfrac{X + iY}{1 - Z}\)</h1>
+      <a class="home" href="./index.html">← All topics</a>
+    </header>
+
+    <main>
+      <form id="controls" autocomplete="off">
+        <p class="intro">
+          The line from the north pole \(N\) through a point \(P\) of the unit sphere meets the plane of the equator in one point
+          \(z\). Click the sphere or the plane to choose \(P\); drag the sphere to turn it.
+        </p>
+
+        <label class="field">
+          <span>Example</span>
+          <select id="preset">
+            <option value="">Choose…</option>
+          </select>
+        </label>
+
+        <fieldset class="count">
+          <legend>Latitude of \(P\) in degrees (\(90\) is \(N\))</legend>
+          <label for="lat">\(\varphi\)</label>
+          <input id="latSlider" type="range" min="-90" max="90" step="0.5" aria-label="latitude slider" />
+          <input id="lat" type="number" min="-90" max="90" step="any" />
+        </fieldset>
+
+        <fieldset class="count">
+          <legend>Longitude of \(P\) in degrees</legend>
+          <label for="lon">\(\lambda\)</label>
+          <input id="lonSlider" type="range" min="-180" max="180" step="0.5" aria-label="longitude slider" />
+          <input id="lon" type="number" min="-180" max="180" step="any" />
+        </fieldset>
+
+        <label class="check"><input id="grid" type="checkbox" /> Parallels and meridians, and their images</label>
+
+        <button id="play" type="button" aria-pressed="false">▶ Move \(P\) up to \(N\)</button>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <figure id="chart">
+        <figcaption>
+          <span id="formula"></span>
+          <span id="hover" class="readout"></span>
+        </figcaption>
+        <div id="scene" tabindex="0" role="img">
+          <canvas></canvas>
+          <div class="labels" aria-hidden="true"></div>
+        </div>
+        <p class="legend">
+          <i class="key ray"></i> the line through \(N\), \(P\) and \(z\)
+          <i class="key parallel"></i> parallel of \(P\)
+          <i class="key meridian"></i> meridian of \(P\)
+          <i class="key equator"></i> equator
+        </p>
+      </figure>
+
+      <figure id="planeChart" class="chart-figure">
+        <figcaption>
+          <span>The plane seen from above: \(z = x + iy\); click to choose \(z\)</span>
+          <span id="planeHover" class="readout"></span>
+        </figcaption>
+        <svg tabindex="0" role="img"></svg>
+        <p class="legend">
+          <i class="key parallel"></i> \(|z| = \text{const}\)
+          <i class="key meridian"></i> \(\arg z = \lambda\)
+          <i class="key equator"></i> \(|z| = 1\)
+        </p>
+      </figure>
+
+      <section id="facts" aria-live="polite">
+        <h2>What the pictures say</h2>
+        <dl></dl>
+      </section>
+    </main>
+
+    <script type="module" src="/src/stereographic.js"></script>
+  </body>
+</html>
