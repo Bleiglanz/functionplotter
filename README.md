@@ -31,7 +31,8 @@ each, linked from a landing page. Formulas are typeset with [KaTeX](https://kate
   to a draggable $b$, and above it $F(x) = \int_a^x f$ with its tangent at $b$, of slope $f(b)$.
 - **Fourier series** (`fourier.html`): one period of $f$, repeated, and its partial sums $S_n$
   with a slider for the number of harmonics; the overshoot next to a jump (Gibbs phenomenon)
-  is marked, and a second chart shows how fast the harmonics shrink.
+  is marked, a second chart shows how fast the harmonics shrink, and a third draws the first
+  five non-zero harmonics as separate waves.
 - **Linear maps in 2D** (`linear-maps.html`): a 2×2 matrix acting on the plane. Drag the
   images of $e_1$ and $e_2$ (the columns) and watch the grid, the unit square (area $|\det A|$)
   and a letter F (orientation) follow; a slider moves from the identity to $A$.

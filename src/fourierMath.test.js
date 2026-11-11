@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sampleMidpoints, coefficients, partialSum, amplitude, periodic, largestJump } from './fourierMath.js';
+import { sampleMidpoints, coefficients, partialSum, amplitude, periodic, largestJump, harmonic, nonZeroHarmonics } from './fourierMath.js';
 
 const T = 2 * Math.PI;
 const M = 4096;
@@ -66,5 +66,37 @@ describe('periodic and largestJump', () => {
     expect(saw.size).toBeCloseTo(-2 * Math.PI, 2);
     expect(largestJump(sampleMidpoints(Math.sin, -Math.PI, T, M), T)).toBeNull();
     expect(largestJump(sampleMidpoints((x) => x * x, -Math.PI, T, M), T)).toBeNull(); // continuous extension
+  });
+});
+
+describe('harmonic', () => {
+  it('is one term of the series, and the terms add up to Sₙ', () => {
+    const c = coeffs((x) => x * x);
+    const x = 0.7;
+    expect(harmonic(c, T, 2, x)).toBeCloseTo(c.a[2] * Math.cos(2 * x) + c.b[2] * Math.sin(2 * x), 12);
+    let sum = 0;
+    for (let k = 0; k <= 5; k++) sum += harmonic(c, T, k, x);
+    expect(sum).toBeCloseTo(partialSum(c, T, 5, x), 12);
+  });
+
+  it('uses ω = 2π/T for other periods', () => {
+    const c = { a: Float64Array.of(0, 0), b: Float64Array.of(0, 2) };
+    expect(harmonic(c, 1, 1, 0.25)).toBeCloseTo(2, 12);
+  });
+});
+
+describe('nonZeroHarmonics', () => {
+  it('skips the even harmonics of the square wave', () => {
+    expect(nonZeroHarmonics(coeffs(square, 20), 5)).toEqual([1, 3, 5, 7, 9]);
+  });
+
+  it('keeps every harmonic of the sawtooth', () => {
+    expect(nonZeroHarmonics(coeffs((x) => x), 5)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('returns fewer when the series ends, and none for a constant', () => {
+    const trig = coefficients(sampleMidpoints((x) => 2 + 3 * Math.cos(2 * x) - Math.sin(5 * x), 0, T, 64), T, 20);
+    expect(nonZeroHarmonics(trig, 5)).toEqual([2, 5]);
+    expect(nonZeroHarmonics(coeffs(() => 3), 5)).toEqual([]);
   });
 });

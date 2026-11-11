@@ -1,18 +1,20 @@
 import { compileFunction, constant, expressionToTex } from './expression.js';
 import { niceTicks } from './format.js';
-import { renderStatic, setTex, texNum as T } from './tex.js';
+import { renderStatic, setTex, texText, texNum as T } from './tex.js';
 import { svgEl, svgTex, num, safe, frame, axes, extent, polyline, setFacts, stateFromHash, writeHash } from './pageUtils.js';
-import { sampleMidpoints, coefficients, partialSum, amplitude, periodic, largestJump } from './fourierMath.js';
+import { sampleMidpoints, coefficients, partialSum, amplitude, periodic, largestJump, harmonic, nonZeroHarmonics } from './fourierMath.js';
 
 // Page for Fourier series: f on one period, repeated, and its partial sums
 // Sₙ for a growing number n of harmonics, with the overshoot next to a jump
-// (the Gibbs phenomenon); below, the size of each harmonic on a log scale.
+// (the Gibbs phenomenon); below, the size of each harmonic on a log scale,
+// and the first few non-zero harmonics as separate functions.
 
 const N_MAX = 100;
 const M = 4096; // samples per period for the coefficients
 const SAMPLES = 1200; // for drawing, across three periods
 const LOG_FLOOR = -8; // harmonics below 10⁻⁸ of the largest are rounding noise
 const STEP_MS = 250; // per harmonic in "Add harmonics"
+const TERMS = 5; // non-zero harmonics drawn as separate strips
 const DEFAULTS = { expr: 'x < 0 ? -1 : 1', a: '-pi', b: 'pi', n: 5 };
 const PRESETS = [
   { label: 'Square wave: a jump, Gibbs overshoot', expr: 'x < 0 ? -1 : 1', a: '-pi', b: 'pi', n: 5 },
@@ -31,6 +33,7 @@ const fields = { expr: $('expr'), a: $('a'), b: $('b'), n: $('n') };
 const nSlider = $('nSlider');
 const mainSvg = document.querySelector('#chart > svg');
 const specSvg = document.querySelector('#spectrumChart > svg');
+const termsSvg = document.querySelector('#termsChart > svg');
 
 for (const [i, preset] of PRESETS.entries()) $('preset').add(new Option(preset.label, i));
 
@@ -69,6 +72,7 @@ function getModel({ expr, a, b }) {
     const fs = xs.map(g);
     const amps = Array.from({ length: N_MAX + 1 }, (_, k) => amplitude(coeffs, k));
     const meanSquare = samples.fs.reduce((s, v) => s + v * v, 0) / M;
+    const terms = nonZeroHarmonics(coeffs, TERMS).map((k) => ({ k, ys: xs.map((x) => harmonic(coeffs, period, k, x)) }));
     model = {
       key,
       expr,
@@ -82,6 +86,8 @@ function getModel({ expr, a, b }) {
       amps,
       maxAmp: Math.max(...amps),
       meanSquare,
+      terms,
+      termMax: Math.max(0, ...terms.map(({ ys }) => Math.max(...ys.map(Math.abs)))),
       jump: largestJump(samples, period),
       vLo,
       vHi,
@@ -204,6 +210,63 @@ function drawSpectrum(m, n) {
   specSvg.setAttribute('aria-label', `Sizes of the harmonics k = 0 to ${N_MAX} on a log scale; the first ${n} are used`);
 }
 
+// --- Terms chart: the first non-zero harmonics, one strip each -----------------------------
+
+let termsChart = null;
+
+/** One harmonic with its numbers, e.g. "1.27\,\sin x"; terms below 10⁻⁹ of the largest are left out. */
+function termTex(m, k) {
+  const tiny = 1e-9 * (m.maxAmp || 1);
+  const parts = [];
+  if (Math.abs(m.coeffs.a[k]) > tiny) parts.push({ v: m.coeffs.a[k], body: `\\cos ${argTex(m, k)}` });
+  if (Math.abs(m.coeffs.b[k]) > tiny) parts.push({ v: m.coeffs.b[k], body: `\\sin ${argTex(m, k)}` });
+  return parts
+    .map(({ v, body }, i) => `${v < 0 ? '-' : i ? '+' : ''} ${T(Math.abs(v), 3)}\\,${body}`)
+    .join(' ');
+}
+
+function drawTerms(m, n) {
+  const box = frame(termsSvg, MARGIN);
+  termsChart = null;
+  if (!box) return;
+  const sx = (x) => MARGIN.left + ((x - m.vLo) / (m.vHi - m.vLo)) * box.plotW;
+  const ticks = niceTicks(m.vLo, m.vHi, 8).ticks.filter((t) => t >= m.vLo && t <= m.vHi);
+  axes(termsSvg, box, ticks.map((t) => [t, sx(t)]), 0, 1, () => 0, []);
+  const plot = svgEl('g', { 'clip-path': box.clipUrl }, termsSvg);
+  for (const x of [m.lo, m.hi]) svgEl('line', { x1: sx(x), x2: sx(x), y1: MARGIN.top, y2: MARGIN.top + box.plotH, class: 'period' }, plot);
+  const count = m.terms.length;
+  const stripH = count ? box.plotH / count : box.plotH;
+  // One scale for all strips, so the terms visibly shrink as k grows.
+  // The wave sits a little below the middle, leaving room for its label.
+  const scale = m.termMax > 0 ? (0.36 * stripH) / m.termMax : 0;
+  const left = MARGIN.left;
+  const right = MARGIN.left + box.plotW;
+  for (const [i, { k, ys }] of m.terms.entries()) {
+    const top = MARGIN.top + i * stripH;
+    const mid = top + 0.56 * stripH;
+    const later = k > n ? ' later' : '';
+    if (i > 0) svgEl('line', { x1: left, x2: right, y1: top, y2: top, class: 'strip-gap' }, plot);
+    svgEl('line', { x1: left, x2: right, y1: mid, y2: mid, class: 'strip-axis' }, plot);
+    svgEl('path', { d: polyline(m.xs.map((x, j) => [sx(x), mid - scale * ys[j]]), (y) => y), class: `term${later}` }, plot);
+    svgTex(termsSvg, left + 6, top + 3, `k = ${k}:\\; ${termTex(m, k)}`, { baseline: 'top', cls: `term-label${later}` });
+  }
+  if (cursorX !== null) svgEl('line', { x1: sx(cursorX), x2: sx(cursorX), y1: MARGIN.top, y2: MARGIN.top + box.plotH, class: 'cursor' }, plot);
+  termsChart = { box };
+  termsSvg.setAttribute(
+    'aria-label',
+    count ? `The first ${count} non-zero harmonics, k = ${m.terms.map((t) => t.k).join(', ')}, each as its own curve` : 'f is constant: it has no harmonics',
+  );
+}
+
+function termsCaption(m) {
+  const a0 = Math.abs(m.coeffs.a[0]) > 1e-9 * (m.maxAmp || 1) ? m.coeffs.a[0] : 0;
+  const parts = [];
+  if (a0) parts.push(`, plus the constant \\(a_0 = ${T(a0, 3)}\\)`);
+  if (!m.terms.length) parts.push(': none, since \\(f\\) is constant');
+  else if (m.terms.length < TERMS) parts.push(`; only ${m.terms.length} of the first ${N_MAX} aren't zero`);
+  $('termsNote').innerHTML = texText(parts.join(''));
+}
+
 // --- Pointer and keyboard -------------------------------------------------------------
 
 let cursorX = null;
@@ -212,26 +275,37 @@ function showX(x) {
   cursorX = x;
   const { n } = current;
   setTex($('hover'), `x = ${T(x)} \\quad f(x) = ${T(model.g(x))} \\quad S_{${n}}(x) = ${T(partialSum(model.coeffs, model.period, n, x))}`);
+  setTex($('termsHover'), [`x = ${T(x)}`, ...model.terms.map(({ k }) => `k = ${k}\\colon ${T(harmonic(model.coeffs, model.period, k, x), 3)}`)].join(' \\quad '));
 }
 
-mainSvg.addEventListener('pointermove', (e) => {
-  if (!main || model?.error) return;
-  const px = e.clientX - mainSvg.getBoundingClientRect().left;
-  showX(model.vLo + ((px - MARGIN.left) / main.box.plotW) * (model.vHi - model.vLo));
-  update();
-});
-mainSvg.addEventListener('pointerleave', () => {
+function clearX() {
   cursorX = null;
   $('hover').innerHTML = '';
+  $('termsHover').innerHTML = '';
   update();
-});
-mainSvg.addEventListener('keydown', (e) => {
-  if (!main || model?.error || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
-  e.preventDefault();
-  const step = ((model.vHi - model.vLo) / 200) * (e.shiftKey ? 10 : 1) * (e.key === 'ArrowLeft' ? -1 : 1);
-  showX(Math.min(model.vHi, Math.max(model.vLo, (cursorX ?? model.lo + model.period / 2) + step)));
-  update();
-});
+}
+
+// The main chart and the terms chart share the x mapping, so the cursor moves in both.
+for (const [svg, chart] of [
+  [mainSvg, () => main],
+  [termsSvg, () => termsChart],
+]) {
+  svg.addEventListener('pointermove', (e) => {
+    const c = chart();
+    if (!c || model?.error) return;
+    const px = e.clientX - svg.getBoundingClientRect().left;
+    showX(model.vLo + ((px - MARGIN.left) / c.box.plotW) * (model.vHi - model.vLo));
+    update();
+  });
+  svg.addEventListener('pointerleave', clearX);
+  svg.addEventListener('keydown', (e) => {
+    if (!chart() || model?.error || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+    e.preventDefault();
+    const step = ((model.vHi - model.vLo) / 200) * (e.shiftKey ? 10 : 1) * (e.key === 'ArrowLeft' ? -1 : 1);
+    showX(Math.min(model.vHi, Math.max(model.vLo, (cursorX ?? model.lo + model.period / 2) + step)));
+    update();
+  });
+}
 
 function showK(k) {
   pickedK = k;
@@ -394,9 +468,10 @@ function update() {
   const m = getModel(raw);
   if (m.error) {
     $('status').textContent = m.error;
-    for (const svg of [mainSvg, specSvg]) frame(svg, MARGIN);
-    main = spec = current = null;
+    for (const svg of [mainSvg, specSvg, termsSvg]) frame(svg, MARGIN);
+    main = spec = termsChart = current = null;
     $('formula').innerHTML = '';
+    $('termsNote').innerHTML = '';
     setFacts([]);
     writeHash(raw);
     return;
@@ -412,6 +487,8 @@ function update() {
   setTex($('formula'), `f(x) = ${m.fTex}`);
   drawMain(m, n, current.sums, current.over);
   drawSpectrum(m, n);
+  drawTerms(m, n);
+  termsCaption(m);
   writeHash({ ...raw, n });
 }
 
@@ -468,6 +545,7 @@ $('controls').addEventListener('submit', (e) => e.preventDefault());
 const resize = new ResizeObserver(() => update());
 resize.observe(mainSvg);
 resize.observe(specSvg);
+resize.observe(termsSvg);
 
 renderStatic();
 writeForm(stateFromHash(DEFAULTS));

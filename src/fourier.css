@@ -1,17 +1,27 @@
 @import './page.css';
 
 /* Fourier page: f and the partial sum Sₙ on top, the size of each harmonic
-   below. Form controls, readouts and legend keys come from page.css. */
+   below, and the first five non-zero harmonics as separate strips under
+   that. Form controls, readouts and legend keys come from page.css. */
 
 main {
   grid-template-areas:
     'controls chart'
     'controls spectrum'
+    'controls terms'
     'controls facts';
 }
 
 #spectrumChart {
   grid-area: spectrum;
+}
+
+#termsChart {
+  grid-area: terms;
+}
+
+#termsChart > svg {
+  height: 340px;
 }
 
 #chart > svg {
@@ -80,6 +90,48 @@ main {
   opacity: 1;
 }
 
+.term {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.term.later {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+
+.strip-axis {
+  stroke: var(--muted);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+
+.strip-gap {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.tex-label.term-label > div {
+  color: var(--text);
+  background: var(--panel);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+.tex-label.term-label.later > div {
+  color: var(--muted);
+}
+
+.key.term {
+  border-top: 2px solid var(--accent);
+}
+
+.key.term.later {
+  border-top-color: var(--muted);
+}
+
 .key.curve {
   border-top: 2px solid var(--text);
 }
@@ -94,6 +146,6 @@ main {
 
 @media (max-width: 760px) {
   main {
-    grid-template-areas: 'chart' 'spectrum' 'controls' 'facts';
+    grid-template-areas: 'chart' 'spectrum' 'terms' 'controls' 'facts';
   }
 }

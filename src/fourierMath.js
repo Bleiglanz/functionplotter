@@ -67,6 +67,28 @@ export function partialSum({ a, b }, T, n, x) {
   return sum;
 }
 
+/** The k-th term aₖ cos kωx + bₖ sin kωx at x (for k = 0: a₀). */
+export function harmonic({ a, b }, T, k, x) {
+  const t = ((2 * Math.PI) / T) * k * x;
+  return a[k] * Math.cos(t) + b[k] * Math.sin(t);
+}
+
+/**
+ * The first `count` indices k ≥ 1 whose harmonic is not zero: larger than
+ * `rel` times the largest coefficient size, a₀ included (the coefficients are
+ * computed numerically, so a vanishing one is only tiny). Empty when f is
+ * constant.
+ */
+export function nonZeroHarmonics(coeffs, count, rel = 1e-8) {
+  const N = coeffs.a.length - 1;
+  let max = 0;
+  for (let k = 0; k <= N; k++) max = Math.max(max, amplitude(coeffs, k));
+  const ks = [];
+  if (!(max > 0)) return ks;
+  for (let k = 1; k <= N && ks.length < count; k++) if (amplitude(coeffs, k) > rel * max) ks.push(k);
+  return ks;
+}
+
 /** √(aₖ² + bₖ²), the size of the k-th harmonic (for k = 0: |a₀|). */
 export function amplitude({ a, b }, k) {
   return Math.hypot(a[k], b[k]);
